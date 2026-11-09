@@ -22,15 +22,21 @@
 
   function setHint(t) { $('hint').textContent = t; }
 
-  function loadImage(src, name) {
+  const MAX_EDGE = 2400; // Handyfotos (12 MP+) für Anzeige und Speicher verkleinern
+  function loadImage(src, name, then) {
     const im = new Image();
     im.onload = () => {
-      S.img = im; S.name = name;
-      cv.width = im.naturalWidth; cv.height = im.naturalHeight;
-      S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null; S.auto = null;
+      const k = Math.min(1, MAX_EDGE / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      S.img = c; S.name = name; S.iw = c.width; S.ih = c.height;
+      cv.width = c.width; cv.height = c.height;
+      S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null; S.auto = null; S.autoScale = null;
       S.t0 = Date.now(); S.t1 = null;
       clearInterval(S.tick); S.tick = setInterval(updateTimer, 500);
       setTool('calib'); recompute(); draw(); updateTimer();
+      if (then) then();
     };
     im.src = src;
   }
@@ -40,7 +46,7 @@
     document.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('active', b.dataset.tool === t));
     if (!S.img) return;
     if (t === 'calib') {
-      S.calib.pts = []; S.calib.H = null;
+      S.calib.pts = []; S.calib.H = null; S.autoScale = null;
       setHint(S.calib.type === 'rect'
         ? 'Maßstab: 4 Ecken des Referenzrechtecks im Uhrzeigersinn ab links oben anklicken. Punkte lassen sich ziehen.'
         : 'Maßstab: 2 Endpunkte der Referenzstrecke anklicken.');
@@ -84,7 +90,9 @@
     $('rNet').innerHTML = ready && facades.length ? '<b>' + fmt(aF - aW) + ' m²</b>' : '–';
     $('rRatio').textContent = ready && facades.length && aF > 0 ? fmt((aW / aF) * 100, 1) + ' %' : '–';
 
+    $('sum').textContent = ready && facades.length ? `Wand netto ${fmt(aF - aW)} m² · Fassade ${fmt(aF)} m² · Öffnungen ${fmt(aW)} m² (${wins.length}) · Fensteranteil ${fmt(aF > 0 ? (aW / aF) * 100 : NaN, 1)} %` : '';
     if (S.img && !ready) warn.push('Noch kein Maßstab gesetzt – es werden keine Flächen berechnet.');
+    if (ready && S.autoScale === 'door') warn.push('Maßstab aus angenommener Türhöhe – Ergebnis ist nur eine Größenordnung. Mit gemessener Fassadenbreite genauer.');
     if (ready && S.calib.type === 'line') warn.push('Referenzstrecke ohne Perspektivkorrektur: nur bei frontaler Aufnahme belastbar.');
     if (ready && S.calib.type === 'rect' && G.selfIntersects(S.calib.pts)) warn.push('Referenzrechteck: Punkte nicht in Umlaufreihenfolge.');
     S.shapes.forEach((s, i) => { if (G.selfIntersects(s.pts)) warn.push(`${LABEL[s.kind]} ${nr(i)}: Polygon überschneidet sich selbst.`); });
@@ -224,35 +232,60 @@
 
   // ---------- KI-Vorschlag (benötigt server.js) ----------
   function downscaleToJpeg(maxEdge = 1568) {
-    const k = Math.min(1, maxEdge / Math.max(S.img.naturalWidth, S.img.naturalHeight));
+    const k = Math.min(1, maxEdge / Math.max(S.iw, S.ih));
     const c = document.createElement('canvas');
-    c.width = Math.round(S.img.naturalWidth * k); c.height = Math.round(S.img.naturalHeight * k);
+    c.width = Math.round(S.iw * k); c.height = Math.round(S.ih * k);
     c.getContext('2d').drawImage(S.img, 0, 0, c.width, c.height);
     return { k, w: c.width, h: c.height, data: c.toDataURL('image/jpeg', 0.9).split(',')[1] };
   }
-  $('auto').addEventListener('click', async () => {
+  // Referenzstrecke aus erkannten Umrissen: Oberkante der Fassade (Breite) bzw. Mittellinie der Tür (Höhe)
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  function topEdge(pts) { const t = [...pts].sort((p, q) => p[1] - q[1]).slice(0, 2).sort((p, q) => p[0] - q[0]); return [t[0], t[1]]; }
+  function verticalMid(pts) {
+    const byY = [...pts].sort((p, q) => p[1] - q[1]), n = Math.floor(byY.length / 2);
+    const top = byY.slice(0, Math.max(2, n)).slice(0, 2), bot = byY.slice(-2);
+    return [mid(top[0], top[1]), mid(bot[0], bot[1])];
+  }
+  function applyAutoScale(facade, door) {
+    const mode = document.querySelector('input[name=amode]:checked').value;
+    if (mode === 'none') return null;
+    let p, len;
+    if (mode === 'width' && facade) { p = topEdge(facade.pts); len = +$('autoW').value; }
+    else if (mode === 'door' && door) { p = verticalMid(door.pts); len = +$('autoD').value; }
+    else return 'Auto-Maßstab nicht möglich (' + (mode === 'door' ? 'keine Tür' : 'keine Fassade') + ' erkannt) – bitte Maßstab manuell setzen.';
+    if (!(len > 0)) return 'Auto-Maßstab: ungültige Länge.';
+    S.calib.type = 'line'; S.calib.pts = [p[0], p[1]]; $('calL').value = len;
+    document.querySelector('input[name=ctype][value=line]').checked = true;
+    S.autoScale = mode; return null;
+  }
+
+  async function runDetect() {
     if (!S.img) { setHint('Erst ein Foto laden.'); return; }
-    const btn = $('auto'); btn.disabled = true; setHint('KI analysiert das Foto …');
+    const btns = [$('auto'), $('snapBtn')]; btns.forEach((b) => (b.disabled = true)); setHint('KI analysiert das Foto …');
     const t = Date.now();
     try {
       const im = downscaleToJpeg();
-      const r = await fetch('/api/detect', { method: 'POST', headers: { 'content-type': 'application/json' },
+      const r = await fetch('/api/detect', { method: 'POST', headers: { 'content-type': 'application/json', 'x-access-code': $('code').value },
         body: JSON.stringify({ image: im.data, mediaType: 'image/jpeg', width: im.w, height: im.h }) });
       const out = await r.json();
       if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
       const toImg = (poly, kind) => ({ kind, pts: poly.points.map((p) => [p.x / im.k, p.y / im.k]) });
-      const shapes = [
-        ...out.facades.map((p) => toImg(p, 'facade')),
-        ...out.windows.map((p) => toImg(p, 'window')),
-        ...out.doors.map((p) => toImg(p, 'window')),
-      ].filter((s) => s.pts.length >= 3);
+      const facades = out.facades.map((p) => toImg(p, 'facade')), doors = out.doors.map((p) => toImg(p, 'window'));
+      const shapes = [...facades, ...out.windows.map((p) => toImg(p, 'window')), ...doors].filter((s) => s.pts.length >= 3);
+      setTool('facade'); // Werkzeug wählen, ohne den Maßstab zurückzusetzen
       S.shapes = shapes; S.active = null;
       S.auto = { shapes: JSON.parse(JSON.stringify(shapes)), mock: !!out.mock, model: out.model || null, dauer_s: (Date.now() - t) / 1000, notes: out.notes };
-      setHint((out.mock ? '[ATTRAPPE] ' : 'KI-Vorschlag: ') + shapes.length + ' Flächen. Bitte prüfen, Punkte verschieben, falsche löschen. ' + (out.notes || ''));
+      const scaleMsg = applyAutoScale(facades[0], doors[0]);
+      setHint((out.mock ? '[ATTRAPPE] ' : 'KI-Vorschlag: ') + shapes.length + ' Flächen. Bitte prüfen und korrigieren. ' + (scaleMsg || '') + ' ' + (out.notes || ''));
       recompute(); draw();
     } catch (e) {
-      setHint('Automatische Erkennung nicht möglich: ' + e.message + ' (Server mit „npm start“ gestartet?)');
-    } finally { btn.disabled = false; }
+      setHint('Automatische Erkennung nicht möglich: ' + e.message);
+    } finally { btns.forEach((b) => (b.disabled = false)); }
+  }
+  $('auto').addEventListener('click', runDetect);
+  $('snap').addEventListener('change', (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    loadImage(URL.createObjectURL(f), f.name, runDetect); e.target.value = '';
   });
 
   // ---------- Export ----------
@@ -260,7 +293,7 @@
     const r = updateResults();
     const out = {
       erstellt: new Date().toISOString(), bild: S.name,
-      bildgroesse_px: S.img ? [S.img.naturalWidth, S.img.naturalHeight] : null,
+      bildgroesse_px: S.img ? [S.iw, S.ih] : null,
       massstab: { typ: S.calib.type, punkte_px: S.calib.pts, breite_m: +$('calW').value, hoehe_m: +$('calH').value, laenge_m: +$('calL').value },
       flaechen: S.shapes.map((s) => ({ art: s.kind, punkte_px: s.pts, flaeche_m2: areaOf(s.pts) })),
       ergebnis_m2: { fassade_brutto: r.aF, fenster: r.aW, wand_netto: r.aF - r.aW },

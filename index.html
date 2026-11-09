@@ -13,6 +13,7 @@
 <main>
   <section class="stage">
     <div class="toolbar">
+      <label class="btn primary" id="snapBtn">Foto aufnehmen &amp; auswerten <input id="snap" type="file" accept="image/*" capture="environment" hidden></label>
       <label class="btn">Foto laden <input id="file" type="file" accept="image/*" hidden></label>
       <button id="demo" type="button">Demo-Fassade</button>
       <button id="auto" type="button" title="Braucht den lokalen Server (npm start)">Automatisch erkennen (KI)</button>
@@ -26,6 +27,7 @@
     </div>
     <div class="canvas-wrap">
       <canvas id="cv" width="900" height="600"></canvas>
+      <p id="sum" class="sum" aria-live="polite"></p>
       <p id="hint" class="hint">Lade ein Foto oder die Demo-Fassade.</p>
     </div>
   </section>
@@ -42,6 +44,14 @@
     <label class="row"><input type="radio" name="ctype" value="line">
       <span><b>Referenzstrecke</b> (2 Klicks, nur bei frontaler Aufnahme)</span></label>
     <div class="row inline" id="lineInputs">Länge <input id="calL" type="number" step="0.01" min="0.01" value="1"> m</div>
+
+    <h2>Auto-Maßstab (nach KI-Erkennung)</h2>
+    <label class="row"><input type="radio" name="amode" value="door" checked>
+      <span>Tür als Referenz, Höhe <input id="autoD" type="number" step="0.01" min="0.5" value="2.01"> m <i class="small">(Annahme, ungenau)</i></span></label>
+    <label class="row"><input type="radio" name="amode" value="width">
+      <span>Fassadenbreite <input id="autoW" type="number" step="0.01" min="1" value="10"> m <i class="small">(gemessen, genauer)</i></span></label>
+    <label class="row"><input type="radio" name="amode" value="none"><span>aus (Maßstab selbst setzen)</span></label>
+    <div class="row inline">Zugangscode <input id="code" type="password" autocomplete="off" style="width:110px"> <span class="small">nur bei gehostetem Server</span></div>
 
     <h2>Ergebnis</h2>
     <table id="res">

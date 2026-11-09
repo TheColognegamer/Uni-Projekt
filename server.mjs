@@ -2,6 +2,7 @@
  * Der API-Schlüssel (ANTHROPIC_API_KEY) bleibt serverseitig. MOCK=1 liefert feste Beispielwerte (KEINE echte Erkennung). */
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
@@ -13,6 +14,9 @@ const PORT = Number(process.env.PORT || 8000);
 const MOCK = process.env.MOCK === '1';
 const MODEL = process.env.DETECT_MODEL || 'claude-opus-5-5';
 const MAX_BODY = 12 * 1024 * 1024;
+const ACCESS_CODE = process.env.ACCESS_CODE || '';            // optional: schützt /api/detect auf gehosteten Servern
+const MAX_PER_HOUR = Number(process.env.MAX_PER_HOUR || 60);  // einfache Kostenbremse (pro Serverprozess)
+let hits = [];
 
 const Pt = z.object({ x: z.number(), y: z.number() });
 const Poly = z.object({ label: z.string(), points: z.array(Pt) });
@@ -81,6 +85,10 @@ http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
     if (req.method === 'POST' && url.pathname === '/api/detect') {
+      if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) return json(res, 401, { error: 'Zugangscode fehlt oder falsch.' });
+      const now = Date.now(); hits = hits.filter((t) => now - t < 3600e3);
+      if (hits.length >= MAX_PER_HOUR) return json(res, 429, { error: 'Stundenlimit erreicht (' + MAX_PER_HOUR + ' Fotos). Später erneut versuchen.' });
+      hits.push(now);
       const b = JSON.parse(await readBody(req));
       if (!b.image || !/^image\/(jpeg|png|webp|gif)$/.test(b.mediaType) || !(b.width > 0) || !(b.height > 0)) return json(res, 400, { error: 'Ungültige Anfrage' });
       return json(res, 200, await detect(b));
@@ -96,4 +104,9 @@ http.createServer(async (req, res) => {
     console.error('[detect]', e.message);
     json(res, status, { error: e.message });
   }
-}).listen(PORT, () => console.log(`App: http://localhost:${PORT}  (${MOCK ? 'ATTRAPPE' : 'Modell ' + MODEL})`));
+}).listen(PORT, () => {
+  console.log(`App: http://localhost:${PORT}  (${MOCK ? 'ATTRAPPE' : 'Modell ' + MODEL})`);
+  for (const list of Object.values(os.networkInterfaces()))
+    for (const i of list || []) if (i.family === 'IPv4' && !i.internal) console.log(`Am Handy (gleiches WLAN): http://${i.address}:${PORT}`);
+  if (!ACCESS_CODE) console.log('Hinweis: ohne ACCESS_CODE kann jeder im Netz die KI-Funktion nutzen (Kosten!).');
+});

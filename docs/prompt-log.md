@@ -58,3 +58,11 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
   3. Server ohne Schlüssel gibt eine verständliche Fehlermeldung (geprüft).
 - **Noch offen / Prüfung durch das Team:** Mit eigenem Schlüssel echte Vorschläge erzeugen und messen: Flächenabweichung Vorschlag vs. manuelles Referenzaufmaß, Anzahl Korrekturen, Zeit. Refusal-Fallback der API wurde nicht eingebaut (bei Ablehnung erscheint eine Fehlermeldung).
 - **Dateien:** `server.mjs`, `package.json`, `src/app.js`, `index.html`, `tests/auto-mock.mjs`.
+
+### P-04 · Handy-Ablauf: Kamera → Auswertung · 09.11.2026 · Nicolai
+- **Ziel:** Am Handy ein Foto aufnehmen und ohne Klicken ein Ergebnis bekommen.
+- **Prompt (sinngemäß):** „Ich muss es per Handy öffnen können, mit der Handykamera das Bild machen und dann soll der mir das automatisch ausrechnen.“
+- **KI-Ergebnis:** Button „Foto aufnehmen & auswerten“ (Kamera über Datei-Eingabe mit `capture`), Verkleinerung großer Handyfotos, Auto-Maßstab aus erkannter Tür (angenommene Höhe 2,01 m) oder eingegebener Fassadenbreite, Kurzzusammenfassung unter dem Bild, Anzeige der WLAN-Adresse im Server, optionaler Zugangscode und Stundenlimit.
+- **Fachliche Auffälligkeiten:** Der Auto-Maßstab nutzt eine Referenzstrecke ohne Perspektivkorrektur und bei der Tür eine **Annahme**; die App warnt dazu. In der Attrappe ergibt das 57,7 m² statt der 61,6 m² mit Referenzrechteck (Differenz ~6 %), also genau der Effekt, den die Annahme erwarten lässt.
+- **Prüfung:** Test im emulierten Handy-Format (390 px, Touch) mit der Attrappe, Zugangscode (401/401/200) geprüft. **Nicht getestet:** echte Handykamera, echter Modellaufruf, Hosting.
+- **Dateien:** `index.html`, `src/app.js`, `server.mjs`, `tests/auto-mock.mjs`.

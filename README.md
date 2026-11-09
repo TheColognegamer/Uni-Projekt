@@ -23,6 +23,11 @@ npm start                               # http://localhost:8000
 npm run start:mock                      # nur Oberfläche testen, feste Beispielwerte, KEINE echte Erkennung
 ```
 Der Maßstab bleibt Handarbeit (Schritt 1). Der Export enthält den ursprünglichen KI-Vorschlag (`ki_vorschlag`) neben der korrigierten Fassung, um die Korrekturen auswerten zu können.
+### Am Handy nutzen
+Die Seite „Foto aufnehmen & auswerten“ öffnet am Handy direkt die Kamera, schickt das Foto an den Server und berechnet mit Auto-Maßstab (angenommene Türhöhe oder eingegebene Fassadenbreite) die Flächen. Dazu muss das Handy den Server erreichen:
+1. **Gleiches WLAN (einfachster Weg):** `npm start` am Rechner; im Terminal erscheint `Am Handy (gleiches WLAN): http://192.168.x.x:8000`. Diese Adresse im Handy-Browser öffnen.
+2. **Gehostet (von überall):** Das Repo bei einem Node-Hoster (z. B. Render, Railway, Fly.io) als Web-Dienst starten mit `npm install` und `npm start`; Umgebungsvariablen `ANTHROPIC_API_KEY` und `ACCESS_CODE` setzen. Der Zugangscode wird in der App eingetragen. `MAX_PER_HOUR` (Standard 60) begrenzt die Kosten. Dieser Weg ist hier nicht getestet.
+
 **Stand:** Der Server-Aufruf an das Modell ist noch nicht gegen die echte API getestet.
 
 ## Tests

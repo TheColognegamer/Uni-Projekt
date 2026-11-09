@@ -14,10 +14,22 @@ Oder `index.html` direkt im Browser öffnen. „Demo-Fassade“ lädt ein synthe
 1. Foto laden. 2. **Maßstab:** 4 Ecken eines Referenzrechtecks bekannter Größe (links oben, im Uhrzeigersinn) klicken und Maße eingeben – möglichst große Referenz (ganze Wand). 3. **Fassade** und 4. **Fenster/Öffnungen** als Polygone markieren (Schließen: ersten Punkt anklicken, Enter oder Button). Punkte sind verschiebbar.
 Rechts erscheinen Brutto-/Netto-Fläche und Fensteranteil; unter „Evaluation“ Zeit (H1) und Abweichung zu einem Referenzaufmaß (H2). Export als JSON.
 
+## KI-Vorschläge (optional, lokal)
+Der Button „Automatisch erkennen (KI)“ schickt das Foto an einen kleinen Server (`server.js`), der ein Vision-Modell der Claude API aufruft und Umrisse für Wand, Fenster und Türen zurückgibt. Der Schlüssel bleibt serverseitig.
+```bash
+npm install
+export ANTHROPIC_API_KEY="sk-ant-..."   # nie ins Repo committen
+npm start                               # http://localhost:8000
+npm run start:mock                      # nur Oberfläche testen, feste Beispielwerte, KEINE echte Erkennung
+```
+Der Maßstab bleibt Handarbeit (Schritt 1). Der Export enthält den ursprünglichen KI-Vorschlag (`ki_vorschlag`) neben der korrigierten Fassung, um die Korrekturen auswerten zu können.
+**Stand:** Der Server-Aufruf an das Modell ist noch nicht gegen die echte API getestet.
+
 ## Tests
 ```bash
 node tests/geometry.test.js   # Geometrie-Kern
 node tests/e2e.mjs            # Browser-Smoke-Test (benötigt Playwright)
+node tests/auto-mock.mjs <foto.png>   # KI-Vorschlags-Strecke mit Attrappe
 ```
 
 ## Dokumentation

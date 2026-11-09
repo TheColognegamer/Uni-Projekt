@@ -47,3 +47,14 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Wichtige Beobachtung (für Paper):** Monte-Carlo-Test mit ±2 px Klickrauschen: Kalibrierung über ganze Wand → ~0,3 % mittlerer Flächenfehler, über eine Tür (1 × 2 m) → ~13,7 %. Kleine Referenzobjekte sind stark fehleranfällig.
 - **Einschränkung der Prüfung:** Nur synthetische Daten; **noch kein reales Foto, kein unabhängiges Referenzaufmaß** – diese Validierung steht aus.
 - **Dateien:** siehe Repository-Wurzel, `tests/`.
+
+### P-03 · KI-Vorschläge per Vision-Modell (Backend + Button) · 09.11.2026 · Nicolai
+- **Ziel:** Erkennung von Wand, Fenstern und Türen ohne Anklicken; Mensch korrigiert nur noch (H1/H2 prüfbar).
+- **Prompt (sinngemäß):** Fragen, ob automatische Erkennung ohne Anklicken geht und wie man das mit Vision macht; danach „weg zwei“ (echter Test mit Schlüssel).
+- **KI-Ergebnis:** `server.js` (Node, Claude-API-Aufruf mit Bild und strukturierter JSON-Ausgabe über ein Zod-Schema), Button „Automatisch erkennen (KI)“, Umrechnung der Koordinaten vom verkleinerten Bild, Export des ursprünglichen Vorschlags, Attrappe-Modus (`MOCK=1`), Test `tests/auto-mock.mjs`.
+- **Auffälligkeiten:**
+  1. Die KI-Sitzung konnte die API aus ihrer Umgebung nicht aufrufen (401, Schlüsselformular für Anthropic-Hosts nicht möglich). Der echte Modellaufruf wurde deshalb **nicht ausgeführt**; getestet ist nur die Strecke Frontend ↔ Server mit einer Attrappe, die feste Werte für das Beispielfoto liefert.
+  2. Die Attrappe liefert exakt die vorher von der KI selbst geschätzten Klickpunkte. Sie sagt nichts über die Erkennungsqualität.
+  3. Server ohne Schlüssel gibt eine verständliche Fehlermeldung (geprüft).
+- **Noch offen / Prüfung durch das Team:** Mit eigenem Schlüssel echte Vorschläge erzeugen und messen: Flächenabweichung Vorschlag vs. manuelles Referenzaufmaß, Anzahl Korrekturen, Zeit. Refusal-Fallback der API wurde nicht eingebaut (bei Ablehnung erscheint eine Fehlermeldung).
+- **Dateien:** `server.js`, `package.json`, `src/app.js`, `index.html`, `tests/auto-mock.mjs`.

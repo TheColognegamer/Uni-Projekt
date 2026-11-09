@@ -13,6 +13,7 @@
     shapes: [],            // {kind:'facade'|'window', pts}
     active: null,          // {kind, pts} im Entstehen
     drag: null, t0: null, t1: null, tick: null,
+    auto: null,            // KI-Vorschlag (Original, für den Vergleich vor/nach Korrektur)
   };
 
   const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toFixed(d).replace('.', ',') : '–');
@@ -26,7 +27,7 @@
     im.onload = () => {
       S.img = im; S.name = name;
       cv.width = im.naturalWidth; cv.height = im.naturalHeight;
-      S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null;
+      S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null; S.auto = null;
       S.t0 = Date.now(); S.t1 = null;
       clearInterval(S.tick); S.tick = setInterval(updateTimer, 500);
       setTool('calib'); recompute(); draw(); updateTimer();
@@ -220,6 +221,40 @@
   });
   window.addEventListener('keydown', (e) => { if (e.key === 'Enter') closeActive(); if (e.key === 'Escape') { S.active = null; draw(); } });
 
+
+  // ---------- KI-Vorschlag (benötigt server.js) ----------
+  function downscaleToJpeg(maxEdge = 1568) {
+    const k = Math.min(1, maxEdge / Math.max(S.img.naturalWidth, S.img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(S.img.naturalWidth * k); c.height = Math.round(S.img.naturalHeight * k);
+    c.getContext('2d').drawImage(S.img, 0, 0, c.width, c.height);
+    return { k, w: c.width, h: c.height, data: c.toDataURL('image/jpeg', 0.9).split(',')[1] };
+  }
+  $('auto').addEventListener('click', async () => {
+    if (!S.img) { setHint('Erst ein Foto laden.'); return; }
+    const btn = $('auto'); btn.disabled = true; setHint('KI analysiert das Foto …');
+    const t = Date.now();
+    try {
+      const im = downscaleToJpeg();
+      const r = await fetch('/api/detect', { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ image: im.data, mediaType: 'image/jpeg', width: im.w, height: im.h }) });
+      const out = await r.json();
+      if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
+      const toImg = (poly, kind) => ({ kind, pts: poly.points.map((p) => [p.x / im.k, p.y / im.k]) });
+      const shapes = [
+        ...out.facades.map((p) => toImg(p, 'facade')),
+        ...out.windows.map((p) => toImg(p, 'window')),
+        ...out.doors.map((p) => toImg(p, 'window')),
+      ].filter((s) => s.pts.length >= 3);
+      S.shapes = shapes; S.active = null;
+      S.auto = { shapes: JSON.parse(JSON.stringify(shapes)), mock: !!out.mock, model: out.model || null, dauer_s: (Date.now() - t) / 1000, notes: out.notes };
+      setHint((out.mock ? '[ATTRAPPE] ' : 'KI-Vorschlag: ') + shapes.length + ' Flächen. Bitte prüfen, Punkte verschieben, falsche löschen. ' + (out.notes || ''));
+      recompute(); draw();
+    } catch (e) {
+      setHint('Automatische Erkennung nicht möglich: ' + e.message + ' (Server mit „npm start“ gestartet?)');
+    } finally { btn.disabled = false; }
+  });
+
   // ---------- Export ----------
   $('export').addEventListener('click', () => {
     const r = updateResults();
@@ -231,6 +266,7 @@
       ergebnis_m2: { fassade_brutto: r.aF, fenster: r.aW, wand_netto: r.aF - r.aW },
       referenz_m2: { fassade_brutto: parseFloat($('refFacade').value) || null, fenster: parseFloat($('refWin').value) || null },
       toleranz_prozent: +$('tol').value,
+      ki_vorschlag: S.auto,
       dauer_s: S.t0 ? ((S.t1 || Date.now()) - S.t0) / 1000 : null,
     };
     const a = document.createElement('a');

@@ -1,0 +1,18 @@
+# Render-Blueprint (ungetestet): Web-Dienst für Fassaden-Aufmaß mit KI-Erkennung.
+# Geheime Werte werden im Render-Dashboard eingetragen, nicht hier.
+services:
+  - type: web
+    name: fassaden-aufmass
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ACCESS_CODE
+        sync: false
+      - key: REQUIRE_ACCESS_CODE
+        value: "1"
+      - key: MAX_PER_HOUR
+        value: "60"

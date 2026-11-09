@@ -17,6 +17,10 @@ const MAX_BODY = 12 * 1024 * 1024;
 const ACCESS_CODE = process.env.ACCESS_CODE || '';            // optional: schützt /api/detect auf gehosteten Servern
 const MAX_PER_HOUR = Number(process.env.MAX_PER_HOUR || 60);  // einfache Kostenbremse (pro Serverprozess)
 let hits = [];
+// Auf gehosteten Servern (REQUIRE_ACCESS_CODE=1 bzw. Render) nie ohne Zugangscode starten: sonst kann jeder den API-Schlüssel verbrauchen.
+if ((process.env.REQUIRE_ACCESS_CODE === '1' || process.env.RENDER) && !ACCESS_CODE && !MOCK) {
+  console.error('ACCESS_CODE fehlt. Auf einem gehosteten Server muss ein Zugangscode gesetzt sein.'); process.exit(1);
+}
 
 const Pt = z.object({ x: z.number(), y: z.number() });
 const Poly = z.object({ label: z.string(), points: z.array(Pt) });

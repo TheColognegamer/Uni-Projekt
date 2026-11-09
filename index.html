@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fassaden-Aufmaß per Foto</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<header>
+  <h1>Fassaden-Aufmaß per Foto <small>Prototyp · Gruppe 2 · Lebenszyklusvergleich von Fassadensystemen</small></h1>
+</header>
+<main>
+  <section class="stage">
+    <div class="toolbar">
+      <label class="btn">Foto laden <input id="file" type="file" accept="image/*" hidden></label>
+      <button id="demo" type="button">Demo-Fassade</button>
+      <span class="sep"></span>
+      <button data-tool="calib" type="button">1 · Maßstab</button>
+      <button data-tool="facade" type="button">2 · Fassade</button>
+      <button data-tool="window" type="button">3 · Fenster/Öffnung</button>
+      <span class="sep"></span>
+      <button id="undo" type="button">Rückgängig</button>
+      <button id="finish" type="button">Fläche schließen</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="cv" width="900" height="600"></canvas>
+      <p id="hint" class="hint">Lade ein Foto oder die Demo-Fassade.</p>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h2>1 · Maßstab</h2>
+    <label class="row"><input type="radio" name="ctype" value="rect" checked>
+      <span><b>Referenzrechteck</b> (4 Klicks, entzerrt Perspektive)</span></label>
+    <div class="row inline" id="rectInputs">
+      Breite <input id="calW" type="number" step="0.01" min="0.01" value="10"> m
+      Höhe <input id="calH" type="number" step="0.01" min="0.01" value="6"> m
+    </div>
+    <p class="small">Ecken im Uhrzeigersinn ab links oben klicken. Je größer die Referenz (z. B. ganze Wand statt Tür), desto robuster.</p>
+    <label class="row"><input type="radio" name="ctype" value="line">
+      <span><b>Referenzstrecke</b> (2 Klicks, nur bei frontaler Aufnahme)</span></label>
+    <div class="row inline" id="lineInputs">Länge <input id="calL" type="number" step="0.01" min="0.01" value="1"> m</div>
+
+    <h2>Ergebnis</h2>
+    <table id="res">
+      <tr><td>Fassade brutto</td><td id="rFacade">–</td></tr>
+      <tr><td>Fenster/Öffnungen (<span id="rCount">0</span>)</td><td id="rWin">–</td></tr>
+      <tr><td><b>Wandfläche netto</b></td><td id="rNet"><b>–</b></td></tr>
+      <tr><td>Fensterflächenanteil</td><td id="rRatio">–</td></tr>
+    </table>
+    <ul id="warnings" class="warn"></ul>
+    <ul id="shapes"></ul>
+
+    <h2>Evaluation (H1 · H2)</h2>
+    <div class="row inline">Zeit <b id="timer">–</b>
+      <button id="stop" type="button">Messung beenden</button></div>
+    <table id="ref">
+      <tr><td>Referenz Fassade brutto</td><td><input id="refFacade" type="number" step="0.01" min="0"> m²</td><td id="dFacade">–</td></tr>
+      <tr><td>Referenz Fenster gesamt</td><td><input id="refWin" type="number" step="0.01" min="0"> m²</td><td id="dWin">–</td></tr>
+      <tr><td>Toleranz</td><td><input id="tol" type="number" step="0.5" min="0" value="5"> %</td><td></td></tr>
+    </table>
+    <button id="export" type="button">Messung als JSON exportieren</button>
+  </aside>
+</main>
+<script src="src/geometry.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

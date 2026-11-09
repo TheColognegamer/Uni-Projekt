@@ -2,11 +2,10 @@
   "name": "fassaden-aufmass",
   "version": "0.2.0",
   "private": true,
-  "type": "module",
   "description": "Prototyp: Fassadenaufmaß per Foto mit KI-Vorschlägen (Gruppe 2)",
   "scripts": {
-    "start": "node server.js",
-    "start:mock": "MOCK=1 node server.js",
+    "start": "node server.mjs",
+    "start:mock": "MOCK=1 node server.mjs",
     "test": "node tests/geometry.test.js"
   },
   "dependencies": {

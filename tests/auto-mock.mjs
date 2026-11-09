@@ -3,7 +3,7 @@ import { createRequire } from 'module'; import { spawn } from 'node:child_proces
 const { chromium } = createRequire(import.meta.url)('playwright');
 const photo = process.argv[2], shot = process.argv[3];
 const mock = process.env.NOKEY !== '1';
-const srv = spawn('node', ['server.js'], { env: { ...process.env, PORT: '8123', MOCK: mock ? '1' : '0', ANTHROPIC_API_KEY: '' }, stdio: 'pipe' });
+const srv = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: '8123', MOCK: mock ? '1' : '0', ANTHROPIC_API_KEY: '' }, stdio: 'pipe' });
 await new Promise((r) => srv.stdout.on('data', (d) => /App:/.test(d) && r()));
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1400, height: 1000 }, deviceScaleFactor: 2 });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message));

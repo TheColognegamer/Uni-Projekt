@@ -15,7 +15,7 @@ Oder `index.html` direkt im Browser öffnen. „Demo-Fassade“ lädt ein synthe
 Rechts erscheinen Brutto-/Netto-Fläche und Fensteranteil; unter „Evaluation“ Zeit (H1) und Abweichung zu einem Referenzaufmaß (H2). Export als JSON.
 
 ## KI-Vorschläge (optional, lokal)
-Der Button „Automatisch erkennen (KI)“ schickt das Foto an einen kleinen Server (`server.js`), der ein Vision-Modell der Claude API aufruft und Umrisse für Wand, Fenster und Türen zurückgibt. Der Schlüssel bleibt serverseitig.
+Der Button „Automatisch erkennen (KI)“ schickt das Foto an einen kleinen Server (`server.mjs`), der ein Vision-Modell der Claude API aufruft und Umrisse für Wand, Fenster und Türen zurückgibt. Der Schlüssel bleibt serverseitig.
 ```bash
 npm install
 export ANTHROPIC_API_KEY="sk-ant-..."   # nie ins Repo committen

@@ -39,6 +39,7 @@ Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js
 - **Dämmstoffe (laut Projektkonzept):** Mineralwolle, EPS, Holzfaser in beiden Systemen. Ausgegeben werden die rechnerische Dicke (genau U = 0,24, für den Vergleich „gleiche Dämmwirkung“) und die Ausführungsdicke (auf 2 cm aufgerundet). Hinweise zu Brandschutz (brennbare Dämmung in VHF, Brandriegel bei EPS-WDVS).
 - **Brandschutz:** Gebäudeklasse aus der Geschosszahl (oder manuell); unzulässige Dämmvarianten werden ausgegraut (GK 4–5: hinterlüftet nur nichtbrennbar, WDVS mind. schwerentflammbar, EPS mit Brandriegeln; Hochhaus: nur nichtbrennbar).
 - **Zusammenfassung:** kompakte Übersicht unter dem Tool (Kennzahlen, zulässige Dämmvarianten und Fenster, Hinweise), als Text kopierbar.
+- **PDF-Bericht:** Button „PDF herunterladen“ erzeugt einen A4-Bericht (Gebäude, Anforderungen, alle Dämmvarianten mit Brandschutz, Fenster, Hinweise, Grundlagen) direkt im Browser, ohne Bibliothek (`src/pdf.js`, `src/pdf-bericht.js`).
 - **Mögliche Fenster:** alle 6 Optionen (PVC/Holz/Holz-Alu × 2-/3-fach) mit Uw nach DIN EN ISO 10077-1 aus den Fenstermaßen und dem Rahmenanteil, geprüft gegen Uw ≤ 1,3.
 - **Schnittstellen:** Eingang Ereignis `flaechen` (vom Aufmaß), Ausgang Ereignis `sanierung` bzw. `window.SanierungUI.ergebnis()` (für Kosten/CO₂). Felder und Einheiten: `docs/schnittstelle-sanierung.md`.
 - **Annahmen:** Alle λ-, Ug-, Uf-, ψ- und ΔU-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar.
@@ -46,6 +47,7 @@ Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js
 ## Tests
 ```bash
 node tests/bauphysik.test.js  # U-Werte und Dämmdicken gegen Handrechnung
+node tests/pdf.test.js        # PDF-Bericht (Aufbau, Zeichensatz, Querverweise)
 node tests/geometry.test.js   # Geometrie-Kern
 node tests/e2e.mjs            # Browser-Smoke-Test (benötigt Playwright)
 node tests/auto-mock.mjs <foto.png>   # KI-Vorschlags-Strecke mit Attrappe

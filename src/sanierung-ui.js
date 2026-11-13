@@ -132,7 +132,9 @@
     el.innerHTML = `<div class="card">
       <div class="kopf"><div><h2>Zusammenfassung Fassadensanierung</h2>
         <div class="small">Grobabschätzung für Leistungsphase 2 · Kosten und CO₂ ergänzt das Kostenmodul</div></div>
-        <button type="button" id="zfKopieren">Als Text kopieren</button></div>
+        <div class="row inline"><button type="button" id="zfPdf" class="primary">PDF herunterladen</button>
+        <button type="button" id="zfKopieren">Als Text kopieren</button></div></div>
+      <p class="small" id="zfPdfInfo"></p>
       <div class="kpis">
         <div class="kpi"><span>Baujahr / Baualtersklasse</span><b>${w.baujahr}</b><span>${w.klasse}</span></div>
         <div class="kpi"><span>U-Wert Wand heute → Ziel</span><b>${fmt(w.u, 1)} → ≤ ${fmt(B.ANFORDERUNG.aussenwand.uMax)}</b><span>W/(m²K), GModG Anlage 7</span></div>
@@ -161,11 +163,33 @@
       <div class="fuss">Quellen: GModG Anlage 7 · Bekanntmachung Datenaufnahme Wohngebäudebestand 2020, Tab. 2 · DIN EN ISO 6946 / 10077-1 · MBO § 28, MVV TB Anhang 6.
         Grobe Abschätzung, ersetzt keine Fachplanung (Statik, Brand- und Feuchteschutz).</div>
     </div>`;
+    $('zfPdf').onclick = pdfSpeichern;
     $('zfKopieren').onclick = async () => {
       try { await navigator.clipboard.writeText(textZusammenfassung(o)); $('zfKopieren').textContent = 'Kopiert ✓'; }
       catch (e) { $('zfKopieren').textContent = 'Kopieren nicht möglich'; }
       setTimeout(() => { $('zfKopieren').textContent = 'Als Text kopieren'; }, 2000);
     };
+  }
+
+  // ---------- PDF ----------
+  async function pdfSpeichern() {
+    const info = $('zfPdfInfo');
+    try {
+      const bytes = window.PdfBericht.erzeugen(letztes);
+      const name = `Fassadensanierung_Baujahr-${letztes.wand.baujahr}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      // Auf claude.ai (Artefakt) laufen Downloads über die Plattform, sonst über einen normalen Download-Link
+      const dl = window.claude && typeof window.claude.use === 'function' ? await window.claude.use('downloads') : null;
+      if (dl) {
+        try { await dl.save({ filename: name, data: new Blob([bytes], { type: 'application/pdf' }) }); info.textContent = 'PDF gespeichert.'; }
+        catch (e) { info.textContent = e && e.code === 'declined' ? 'Download abgebrochen.' : 'Download hier nicht möglich (' + ((e && e.code) || 'Fehler') + ').'; }
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+      info.textContent = 'PDF erstellt: ' + name;
+    } catch (e) { info.textContent = '⚠ PDF konnte nicht erstellt werden: ' + e.message; }
   }
 
   function render() {

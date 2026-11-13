@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.mjs",
     "start:mock": "MOCK=1 node server.mjs",
-    "test": "node tests/geometry.test.js && node tests/bauphysik.test.js"
+    "test": "node tests/geometry.test.js && node tests/bauphysik.test.js && node tests/pdf.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",

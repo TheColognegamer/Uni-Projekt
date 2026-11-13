@@ -1,5 +1,7 @@
 /* UI für Sanierung: Bestandswand -> Dämmdicken je System/Dämmstoff, Fenstertausch.
- * Bekommt die Flächen aus dem Aufmaß über das Ereignis 'flaechen' (siehe app.js). */
+ * EINGANG:  Ereignis 'flaechen' vom Aufmaß-Modul  { aWand, aFenster, anzahl, fenster:[{b,h}] }
+ * AUSGANG:  Ereignis 'sanierung' an Kosten/CO2-Modul, zusätzlich window.SanierungUI.ergebnis()
+ * Details: docs/schnittstelle-sanierung.md */
 (function () {
   'use strict';
   const B = window.Bauphysik;
@@ -73,6 +75,8 @@
     try { renderWand(out); } catch (e) { out.fehler.push(e.message); $('sBestand').textContent = '⚠ ' + e.message; $('sVarianten').innerHTML = ''; $('sHinweise').textContent = ''; }
     try { renderFenster(out); } catch (e) { out.fehler.push(e.message); $('fRes').innerHTML = `<tr><td>⚠ ${e.message}</td><td></td></tr>`; }
     letztes = out;
+    // Ausgang für Kosten- und CO2-Modul (Schnittstelle siehe docs/schnittstelle-sanierung.md)
+    window.dispatchEvent(new CustomEvent('sanierung', { detail: out }));
   }
 
   window.addEventListener('flaechen', (e) => { Object.assign(F, e.detail); render(); });

@@ -85,3 +85,9 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Nicht umgesetzt (anderer Teil):** LCC über 20/30/50 Jahre und THG (Module A1–A5, B4, C1–C4, D); das Konzept enthält dafür noch keine Zahlen. Die Mengen werden für diese Module bereitgestellt.
 - **Prüfung:** Unit-Tests gegen Handrechnung (u. a. Uw PVC 3-fach 1,2 × 1,4 m = 0,88), Browser-Test mit Demo-Fassade (Fenstermaße 1,20 × 1,40 m korrekt erkannt).
 - **Unsicher/Annahmen:** ΔU der Unterkonstruktionen, Ug/Uf/ψ-Richtwerte, Glasumfang vereinfacht (ein Flügel).
+
+### P-07 · Schnittstellen zu Aufmaß und Kosten/CO₂ · 13.11.2026 · Moritz
+- **Ziel:** Aufgabenteilung abbilden: Flächen kommen aus dem Aufmaß (andere Person), Kosten und CO₂ (andere Person) greifen auf Dämmdicken und Fenster zu.
+- **Prompt (Kurzfassung):** „Die Fläche kommt von jemand anders, du musst daran anknüpfen … Kosten und CO₂ macht jemand anders und muss auf meine Dämmdicken und Fenster abgreifen.“
+- **KI-Ergebnis:** Ausgangsereignis `sanierung`, Beschreibung beider Schnittstellen mit Feldern und Einheiten in `docs/schnittstelle-sanierung.md`.
+- **Prüfung:** Browser-Test mit simuliertem Aufmaß-Ereignis (100 m² Wand, 3 Fenster 1,5 × 2 m) → 6 Varianten, Volumen EPS-WDVS 14 m³, Uw 0,85.

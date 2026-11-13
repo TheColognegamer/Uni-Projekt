@@ -98,3 +98,9 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Auffälligkeit:** Tabelle 2 nennt für Vollstein-Wände ab 1958 „keine Angabe“; das Tool nimmt dann ersatzweise „Sonstige massive Wandaufbauten“ und weist darauf hin.
 - **Prüfung:** Unit-Tests gegen Tabellenwerte und Handrechnung; Browser-Test mit Annahme und mit simuliertem Aufmaß.
 - **Vom Team zu prüfen:** Werte gegen das Original im Bundesanzeiger abgleichen (von der KI über eine Textfassung gelesen); Beispielflächen.
+
+### P-09 · Vollständige Tabelle 2 bis „ab 2002“ · 13.11.2026 · Moritz
+- **Prompt:** „Baue die komplette Tabelle bis 2002 mit ein.“
+- **KI-Ergebnis:** Alle 9 Baualtersklassen (bis 1918, 1919–48, 1949–57, 1958–68, 1969–78, 1979–83, 1984–94, 1995–2001, ab 2002) und alle Außenwandzeilen (5 massiv, 4 Holz/Fachwerk) der Tab. 2. Ersatzregeln bei „keine Angabe“ (Vollstein → sonstige massiv, zweischalig mit Dämmung → ohne, Fachwerk → sonstige Holzkonstruktion). Zusatzhinweise: Ausnahme GModG Anlage 7 Nr. 1b für Wände, die nach 1983 unter Wärmeschutzvorschriften errichtet wurden; Feuchteschutz bei Holz/Fachwerk.
+- **Prüfung:** Unit-Test über alle Klassengrenzen (z. B. 1918/1919, 1957/1958, 2001/2002) und Holzzeilen; Browser-Test mit vier Beispielen.
+- **Vom Team zu prüfen:** Tabellenwerte gegen das Bundesanzeiger-Original (die KI hat eine Textauswertung des PDFs genutzt).

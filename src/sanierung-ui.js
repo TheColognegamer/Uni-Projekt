@@ -12,8 +12,10 @@
   let aufmass = null; // letzte Werte vom Aufmaß-Modul
   let letztes = null;
 
-  $('sKonstr').innerHTML = Object.entries(B.WANDKONSTRUKTIONEN).map(([k, v]) =>
-    `<label><input type="radio" name="sKonstr" value="${k}"${k === 'lochstein' ? ' checked' : ''}><span>${v.name}<small>${v.laie}</small></span></label>`).join('');
+  const GRUPPEN = { massiv: 'Gemauert / Beton', holz: 'Holz / Fachwerk' };
+  $('sKonstr').innerHTML = Object.entries(GRUPPEN).map(([g, titel]) => `<div class="small"><b>${titel}</b></div>`
+    + Object.entries(B.WANDKONSTRUKTIONEN).filter(([, v]) => v.gruppe === g).map(([k, v]) =>
+      `<label><input type="radio" name="sKonstr" value="${k}"${k === 'lochstein' ? ' checked' : ''}><span>${v.name}<small>${v.laie}</small></span></label>`).join('')).join('');
   $('sUk').innerHTML = Object.entries(B.UNTERKONSTRUKTION).map(([k, v]) => `<option value="${k}"${k === 'holz' ? ' selected' : ''}>${v.name.replace('-Unterkonstruktion', '')}</option>`).join('');
   const konstr = () => document.querySelector('input[name=sKonstr]:checked').value;
 
@@ -41,6 +43,7 @@
 
   function renderWand(out, fl) {
     const wand = B.bestandswand(Math.round(+$('sBaujahr').value), konstr(), (+$('sDicke').value) / 100);
+    $('sKlasse').textContent = 'Baualtersklasse ' + wand.klasse;
     out.wand = { baujahr: wand.baujahr, baualtersklasse: wand.klasse, konstruktion: wand.konstruktion, gesamtDicke_m: wand.gesamtDicke, u: wand.u, quelle: wand.quelle };
     $('sBestand').innerHTML = `Heutiger U-Wert der Wand: <b>${fmt(wand.u, 1)} W/(m²K)</b> (Baualtersklasse ${wand.klasse}, „${esc(wand.zeile)}“). `
       + `Quelle: ${esc(wand.quelle)}.` + wand.hinweise.map((t) => '<br>ℹ ' + esc(t)).join('');

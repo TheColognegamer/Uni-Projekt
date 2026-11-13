@@ -31,7 +31,7 @@ window.addEventListener('sanierung', (e) => {
   const r = e.detail;
   r.flaechen                    // { quelle: 'aufmass' | 'annahme', wandNetto_m2, fenster:[{b,h}] }
   r.bezugsflaeche_m2            // Wand netto in m²
-  r.wand                        // { baujahr, baualtersklasse, konstruktion, gesamtDicke_m, u, quelle }  U-Wert Bestand (amtl. Pauschalwert)
+  r.wand                        // { baujahr, baualtersklasse ('bis 1918' … 'ab 2002'), konstruktion, gesamtDicke_m, u, quelle }  U-Wert Bestand (amtl. Pauschalwert)
   r.unterkonstruktion_vhf       // 'holz' | 'alu'
   r.varianten                   // 6 Einträge: 2 Systeme × 3 Dämmstoffe, siehe unten
   r.fenster                     // mögliche Fenster, siehe unten (null, wenn keine Fenster)

@@ -27,46 +27,75 @@
   // Werte gelten inkl. Rsi/Rse. null = „keine Angabe“ in der Tabelle.
   const QUELLE_BESTAND = 'Bekanntmachung Datenaufnahme Wohngebäudebestand 2020 (BAnz AT 04.12.2020 B1), Tab. 2';
   const BAUALTERSKLASSEN = [
-    { key: 'D', von: 1949, bis: 1957 },
-    { key: 'E', von: 1958, bis: 1968 },
-    { key: 'F', von: 1969, bis: 1978 },
+    { von: -Infinity, bis: 1918, text: 'bis 1918' },
+    { von: 1919, bis: 1948, text: '1919–1948' },
+    { von: 1949, bis: 1957, text: '1949–1957' },
+    { von: 1958, bis: 1968, text: '1958–1968' },
+    { von: 1969, bis: 1978, text: '1969–1978' },
+    { von: 1979, bis: 1983, text: '1979–1983' },
+    { von: 1984, bis: 1994, text: '1984–1994' },
+    { von: 1995, bis: 2001, text: '1995–2001' },
+    { von: 2002, bis: Infinity, text: 'ab 2002' },
   ];
-  // u: Werte je Klasse [D, E, F]; bei dickenabhängigen Zeilen je Dickenband (Wandstärke in m, obere Grenze)
+  const X = null; // „keine Angabe“
+  // Vollständige Tabelle 2 (Außenwand). u: Werte je Baualtersklasse in obiger Reihenfolge.
+  // baender: dickenabhängige Zeilen (Wandstärke in m, obere Grenze). ersatz: Zeile, wenn „keine Angabe“.
   const WANDKONSTRUKTIONEN = {
     lochstein: {
-      name: 'Steine mit Hohlräumen: Hochlochziegel oder Bims-Hohlblocksteine',
-      laie: 'Häufigste Bauweise 1950–1970. Bei Bohrungen fällt man in Hohlräume; Bims-Steine sind grau und leicht.',
-      zeile: 'Massivwand Hochlochziegel, Bimsbeton-Hohlsteine o. ä.', u: [1.4, 1.4, 1.0],
+      gruppe: 'massiv', name: 'Steine mit Hohlräumen: Hochlochziegel oder Bims-Hohlblocksteine',
+      laie: 'Häufigste Bauweise ab 1950. Beim Bohren fällt man in Hohlräume; Bims-Steine sind grau und leicht.',
+      zeile: 'Massivwand Hochlochziegel, Bimsbeton-Hohlsteine o. ä.', u: [1.4, 1.4, 1.4, 1.4, 1.0, 0.80, 0.60, 0.50, 0.40],
     },
     vollstein: {
-      name: 'Massive Vollsteine: Vollziegel, Kalksandstein, Bims-Vollstein, Naturstein',
-      laie: 'Schwere Wand ohne Hohlräume; Bohrstaub rot (Ziegel) oder weiß (Kalksandstein).',
-      zeile: 'Massivwand Vollziegel, Naturstein, KS, Bimsbeton-Vollstein',
+      gruppe: 'massiv', name: 'Massive Vollsteine: Vollziegel, Kalksandstein, Bims-Vollstein, Naturstein',
+      laie: 'Schwere Wand ohne Hohlräume; Bohrstaub rot (Ziegel) oder weiß (Kalksandstein). Typisch bis 1957.',
+      zeile: 'Massivwand Vollziegel, wenig poröser Naturstein, KS o. ä.',
       baender: [
-        { bis: 0.20, text: 'bis 20 cm', u: [2.8, null, null] },
-        { bis: 0.30, text: '20–30 cm', u: [1.8, null, null] },
-        { bis: Infinity, text: 'über 30 cm', u: [1.5, null, null] },
+        { bis: 0.20, text: 'bis 20 cm', u: [2.8, 2.8, 2.8, X, X, X, X, X, X] },
+        { bis: 0.30, text: '20–30 cm', u: [1.8, 1.8, 1.8, X, X, X, X, X, X] },
+        { bis: Infinity, text: 'über 30 cm', u: [1.5, 1.5, 1.5, X, X, X, X, X, X] },
       ],
       ersatz: 'sonstige',
     },
     zweischalig: {
-      name: 'Zweischalig mit Klinker außen, ohne Dämmung',
+      gruppe: 'massiv', name: 'Zweischalig mit Klinker außen, ohne Dämmung',
       laie: 'Außen sichtbare Klinker-/Verblendsteine, dahinter Luftschicht und Innenwand.',
-      zeile: 'Zweischalig ohne Dämmschicht', u: [1.3, 1.4, 1.0],
+      zeile: 'Zweischalig ohne Dämmschicht', u: [1.3, 1.3, 1.3, 1.4, 1.0, 0.80, 0.60, 0.50, 0.40],
     },
     zweischaligDaemm: {
-      name: 'Zweischalig mit Klinker außen, mit Dämmschicht',
-      laie: 'Wie oben, zwischen den Schalen liegt bereits eine dünne Dämmung.',
-      zeile: 'Zweischalig mit Dämmschicht', u: [1.0, 0.90, 0.90],
+      gruppe: 'massiv', name: 'Zweischalig mit Klinker außen, mit Dämmschicht',
+      laie: 'Wie oben, zwischen den Schalen liegt bereits eine Dämmung.',
+      zeile: 'Zweischalig mit Dämmschicht', u: [X, X, 1.0, 0.90, 0.90, 0.70, 0.50, 0.50, 0.40],
+      ersatz: 'zweischalig',
     },
     sonstige: {
-      name: 'Sonstige massive Wand / weiß nicht',
-      laie: 'Wenn unklar: Wert für sonstige massive Wände (z. B. Beton, Trümmerschutt).',
+      gruppe: 'massiv', name: 'Sonstige massive Wand / weiß nicht',
+      laie: 'Wenn unklar: Wert für sonstige massive Wände (z. B. Beton, Trümmerschutt, Porenbeton).',
       zeile: 'Sonstige massive Wandaufbauten',
       baender: [
-        { bis: 0.20, text: 'bis 20 cm', u: [3.0, 1.4, 1.0] },
-        { bis: Infinity, text: 'über 20 cm', u: [2.2, 1.4, 1.0] },
+        { bis: 0.20, text: 'bis 20 cm', u: [3.0, 3.0, 3.0, 1.4, 1.0, 0.80, 0.70, 0.70, 0.40] },
+        { bis: Infinity, text: 'über 20 cm', u: [2.2, 2.2, 2.2, 1.4, 1.0, 0.80, 0.60, 0.50, 0.40] },
       ],
+    },
+    holzGedaemmt: {
+      gruppe: 'holz', name: 'Holzbau: Massivholz, Holzrahmen oder Fertighaus mit Dämmung',
+      laie: 'Wand klingt beim Klopfen hohl; Holzständer mit Dämmung dazwischen.',
+      zeile: 'Massivholzwand, Holzrahmen oder Holztafel mit dämmender Füllung', u: [0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.40, 0.40, 0.30],
+    },
+    fachwerkLehm: {
+      gruppe: 'holz', name: 'Fachwerk mit Lehm-Ausfachung',
+      laie: 'Sichtbares Holzfachwerk, Felder aus Lehm oder Lehmziegeln. Typisch vor 1950.',
+      zeile: 'Fachwerkwand mit Lehm-/Lehmziegelausfachung bis 25 cm', u: [1.5, 1.5, 1.5, X, X, X, X, X, X], ersatz: 'holzSonstige',
+    },
+    fachwerkZiegel: {
+      gruppe: 'holz', name: 'Fachwerk mit Ziegel- oder Natursteinausfachung',
+      laie: 'Sichtbares Holzfachwerk, Felder aus Ziegeln oder Naturstein. Typisch vor 1950.',
+      zeile: 'Fachwerkwand mit Vollziegel oder massiver Natursteinausfachung bis 25 cm', u: [2.0, 2.0, 2.0, X, X, X, X, X, X], ersatz: 'holzSonstige',
+    },
+    holzSonstige: {
+      gruppe: 'holz', name: 'Sonstige Holzkonstruktion',
+      laie: 'Holzwand, die zu keiner der obigen Arten passt.',
+      zeile: 'Sonstige Holzkonstruktion', u: [2.0, 2.0, 1.5, 1.4, 0.60, 0.50, 0.40, 0.40, 0.30],
     },
   };
 
@@ -116,8 +145,8 @@
   }
 
   function baualtersklasse(baujahr) {
+    if (!Number.isInteger(baujahr) || baujahr < 1500 || baujahr > 2100) throw new Error('Bitte ein gültiges Baujahr eingeben.');
     const i = BAUALTERSKLASSEN.findIndex((k) => baujahr >= k.von && baujahr <= k.bis);
-    if (i < 0) throw new Error('Das Tool ist für Baujahre 1949–1978 ausgelegt (Schwerpunkt 1950–1970).');
     return { index: i, ...BAUALTERSKLASSEN[i] };
   }
 
@@ -137,13 +166,18 @@
       return { u: band.u[kl.index], zeile: `${kk.zeile}, ${band.text}` };
     };
     let w = wert(k);
-    if (w.u == null && k.ersatz) {
-      hinweise.push(`Für „${k.name}“ enthält die Tabelle für ${kl.von}–${kl.bis} keinen Wert; ersatzweise „Sonstige massive Wandaufbauten“.`);
-      key = k.ersatz; k = WANDKONSTRUKTIONEN[key]; w = wert(k);
+    while (w.u == null && k.ersatz) {
+      const neu = WANDKONSTRUKTIONEN[k.ersatz];
+      hinweise.push(`Für „${k.name}“ enthält die Tabelle in der Baualtersklasse ${kl.text} keinen Wert; ersatzweise „${neu.name}“.`);
+      key = k.ersatz; k = neu; w = wert(k);
     }
+    if (w.u == null) throw new Error('Für diese Wandart und Baualtersklasse gibt es keinen Pauschalwert.');
+    if (/^fachwerk/.test(key) && dicke > 0.25 + 1e-9) hinweise.push('Tabellenwert gilt für Fachwerk bis 25 cm.');
+    if (baujahr >= 1984) hinweise.push('Wand nach 1983 unter Wärmeschutzvorschriften errichtet: Beim nachträglichen Dämmen muss der Höchstwert nach GModG Anlage 7 Nr. 1b nicht eingehalten werden. Das Tool rechnet trotzdem auf U ≤ 0,24.');
+    if (/^(fachwerk|holz)/.test(key)) hinweise.push('Holz-/Fachwerkwand: Feuchteschutz und Eignung des Dämmsystems (diffusionsoffen) fachlich prüfen lassen.');
     const R = 1 / w.u - RSI - RSE;
     return {
-      baujahr, klasse: `${kl.von}–${kl.bis}`, konstruktion: key, gesamtDicke: dicke,
+      baujahr, klasse: kl.text, konstruktion: key, gesamtDicke: dicke,
       u: w.u, R, zeile: w.zeile, quelle: QUELLE_BESTAND, hinweise,
     };
   }

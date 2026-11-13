@@ -12,7 +12,17 @@ assert.strictEqual(B.bestandswand(1972, 'zweischaligDaemm', 0.36).u, 0.9, '1969�
 //    Vollstein ab 1958: Tabelle „keine Angabe“ -> Ersatz „sonstige massive Wandaufbauten“ mit Hinweis
 const ers = B.bestandswand(1962, 'vollstein', 0.36);
 assert.strictEqual(ers.u, 1.4); assert.strictEqual(ers.konstruktion, 'sonstige'); assert.ok(ers.hinweise.length === 1);
-assert.throws(() => B.bestandswand(1940, 'lochstein', 0.3), /1949–1978/);
+assert.throws(() => B.bestandswand(19.5, 'lochstein', 0.3), /Baujahr/);
+// Vollständige Tabelle: alle 9 Klassen, Grenzen und Holzbau
+const reihe = [1900, 1930, 1950, 1960, 1975, 1980, 1990, 2000, 2010].map((j) => B.bestandswand(j, 'lochstein', 0.3).u);
+assert.deepStrictEqual(reihe, [1.4, 1.4, 1.4, 1.4, 1.0, 0.8, 0.6, 0.5, 0.4], 'Hochloch/Bims alle Klassen');
+assert.deepStrictEqual([1918, 1919, 1948, 1949, 1957, 1958, 1968, 1969, 1978, 1979, 1983, 1984, 1994, 1995, 2001, 2002].map((j) => B.bestandswand(j, 'sonstige', 0.15).u),
+  [3.0, 3.0, 3.0, 3.0, 3.0, 1.4, 1.4, 1.0, 1.0, 0.8, 0.8, 0.7, 0.7, 0.7, 0.7, 0.4], 'Klassengrenzen sonstige bis 20 cm');
+assert.strictEqual(B.bestandswand(2005, 'holzGedaemmt', 0.3).u, 0.3, 'Holzrahmen ab 2002');
+assert.strictEqual(B.bestandswand(1900, 'fachwerkZiegel', 0.2).u, 2.0, 'Fachwerk Ziegel bis 1918');
+assert.strictEqual(B.bestandswand(1965, 'fachwerkLehm', 0.2).u, 1.4, 'Fachwerk ab 1958 -> sonstige Holzkonstruktion');
+assert.strictEqual(B.bestandswand(1930, 'zweischaligDaemm', 0.36).u, 1.3, 'zweischalig mit Dämmung vor 1949 -> ohne Dämmung');
+assert.ok(B.bestandswand(1990, 'lochstein', 0.36).hinweise.some((t) => /1b/.test(t)), 'Hinweis Ausnahme nach 1983');
 assert.throws(() => B.bestandswand(1960, 'lochstein', 0.05), /Wandstärke/);
 
 // 2) WDVS EPS auf Vollstein 1955, 38 cm: R Wand = 1/1,5 − 0,17 = 0,49667

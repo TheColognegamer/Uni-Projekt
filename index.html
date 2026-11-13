@@ -63,6 +63,19 @@
     <ul id="warnings" class="warn"></ul>
     <ul id="shapes"></ul>
 
+    <h2>4 · Sanierung nach GModG (U-Werte)</h2>
+    <p class="small">Höchstwerte nach GModG Anlage 7: Außenwand U ≤ 0,24, Fenster U<sub>w</sub> ≤ 1,3 W/(m²K). Alle Kennwerte sind Annahmen für Leistungsphase 2.</p>
+    <div class="row inline">Wandbaustoff <select id="sWand"></select></div>
+    <div class="row inline">Wandstärke gesamt <input id="sDicke" type="number" step="0.5" min="10" value="40"> cm
+      <label class="small"><input id="sPutz" type="checkbox" checked> inkl. Putz (1,5 + 2 cm)</label></div>
+    <p class="small" id="sBestand"></p>
+    <table id="sVarianten"></table>
+    <p class="small" id="sHinweise"></p>
+    <h2>5 · Fenstertausch</h2>
+    <div class="row inline">Bestand <select id="fAlt"></select></div>
+    <div class="row inline">Neu <select id="fNeu"></select></div>
+    <table id="fRes"></table>
+
     <h2>Evaluation (H1 · H2)</h2>
     <div class="row inline">Zeit <b id="timer">–</b>
       <button id="stop" type="button">Messung beenden</button></div>
@@ -75,6 +88,8 @@
   </aside>
 </main>
 <script src="src/geometry.js"></script>
+<script src="src/bauphysik.js"></script>
+<script src="src/sanierung-ui.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

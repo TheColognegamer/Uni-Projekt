@@ -115,6 +115,9 @@
     };
     dev(aF, 'refFacade', 'dFacade', facades.length > 0);
     dev(aW, 'refWin', 'dWin', wins.length > 0);
+    // Flächen an das Sanierungsmodul (src/sanierung-ui.js) weitergeben
+    window.dispatchEvent(new CustomEvent('flaechen', { detail: {
+      aWand: ready && facades.length ? aF - aW : NaN, aFenster: ready && wins.length ? aW : NaN, anzahl: wins.length } }));
     return { aF, aW, ready, facades, wins };
   }
 
@@ -300,6 +303,7 @@
       referenz_m2: { fassade_brutto: parseFloat($('refFacade').value) || null, fenster: parseFloat($('refWin').value) || null },
       toleranz_prozent: +$('tol').value,
       ki_vorschlag: S.auto,
+      sanierung: window.SanierungUI ? window.SanierungUI.ergebnis() : null,
       dauer_s: S.t0 ? ((S.t1 || Date.now()) - S.t0) / 1000 : null,
     };
     const a = document.createElement('a');

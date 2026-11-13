@@ -28,3 +28,5 @@ ul{list-style:none;padding:0;margin:6px 0}
 button.primary,.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 @media(max-width:600px){button,.btn{padding:10px 12px}input[type=number]{width:84px;padding:8px}}
 .sum{margin:10px 0 0;font-weight:600}.sum:empty{display:none}
+select{font:inherit;padding:4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);max-width:100%}
+#sVarianten td,#fRes td{font-size:13px}

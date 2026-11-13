@@ -66,3 +66,13 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Fachliche Auffälligkeiten:** Der Auto-Maßstab nutzt eine Referenzstrecke ohne Perspektivkorrektur und bei der Tür eine **Annahme**; die App warnt dazu. In der Attrappe ergibt das 57,7 m² statt der 61,6 m² mit Referenzrechteck (Differenz ~6 %), also genau der Effekt, den die Annahme erwarten lässt.
 - **Prüfung:** Test im emulierten Handy-Format (390 px, Touch) mit der Attrappe, Zugangscode (401/401/200) geprüft. **Nicht getestet:** echte Handykamera, echter Modellaufruf, Hosting.
 - **Dateien:** `index.html`, `src/app.js`, `server.mjs`, `tests/auto-mock.mjs`.
+
+### P-05 · Dämmdicken nach GModG und Fenstertausch · 13.11.2026 · Moritz
+- **Ziel:** Aus Wandstärke und Baumaterial der Bestandswand (Köln, 1950–1970) die nötige Dämmdicke für WDVS und hinterlüftete Vorhangfassade berechnen, sodass die U-Werte nach GModG/GEG eingehalten werden; dazu Fenstertausch.
+- **Prompt (Kurzfassung):** Tool soll anhand einer Wandstärke und eines Baumaterials die Dicke der Dämmmaterialien berechnen, U-Werte nach GEG bzw. GModG berücksichtigen, Fenstertausch ebenfalls; je System 3 Dämmstoffe.
+- **Tool/Modell:** Claude (Opus 5.5) mit GitHub-Anbindung, Arbeit im eigenen Branch `claude/arbeitsbereich`.
+- **KI-Ergebnis:** `src/bauphysik.js` (Kennwerte + Rechnung), `src/sanierung-ui.js` (Panel 4/5), Anbindung an das Aufmaß über das Ereignis `flaechen`, JSON-Export `sanierung`, Test `tests/bauphysik.test.js`.
+- **Recherche der KI:** Das GEG heißt seit 29.07.2026 GModG (BGBl. 2026 I Nr. 226); Höchstwerte Anlage 7 unverändert: Außenwand 0,24, Fenster Uw 1,3 W/(m²K).
+- **Annahmen, die das Team prüfen muss:** λ-Werte der Bestandsbaustoffe (Bims- und Trümmerbeton sind Schätzwerte), ΔU = 0,03 für die VHF-Unterkonstruktion, Uw der neuen Fenster (Marktrichtwerte), Putzdicken 1,5 + 2 cm. **Dämmstoffe sind Platzhalter** (EPS/MW/Holzfaser bzw. MW/Holzfaser/Hanf), bis die Gruppe ihre Auswahl liefert.
+- **Prüfung:** Unit-Test gegen Handrechnung (Vollziegel 36,5 cm: U = 1,51; EPS 035 → 12,3 cm → 14 cm, U = 0,214); Browser-Test mit Demo-Fassade (Wand netto 53,28 m² korrekt übernommen).
+- **Grenzen:** Vereinfachtes Verfahren für LPh 2, keine Feuchte-/Tauwasserprüfung, keine Laibungs- und Sockeldetails, Dübel im WDVS vernachlässigt.

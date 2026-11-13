@@ -117,7 +117,10 @@
     dev(aW, 'refWin', 'dWin', wins.length > 0);
     // Flächen an das Sanierungsmodul (src/sanierung-ui.js) weitergeben
     window.dispatchEvent(new CustomEvent('flaechen', { detail: {
-      aWand: ready && facades.length ? aF - aW : NaN, aFenster: ready && wins.length ? aW : NaN, anzahl: wins.length } }));
+      aWand: ready && facades.length ? aF - aW : NaN, aFenster: ready && wins.length ? aW : NaN, anzahl: wins.length,
+      // Außenmaße je Fenster (entzerrt, umschließendes Rechteck) für die Uw-Berechnung
+      fenster: ready ? wins.map((s) => { const m = s.pts.map((p) => G.applyH(S.calib.H, p)), xs = m.map((p) => p[0]), ys = m.map((p) => p[1]);
+        return { b: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) }; }) : [] } }));
     return { aF, aW, ready, facades, wins };
   }
 

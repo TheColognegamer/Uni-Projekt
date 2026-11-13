@@ -33,10 +33,11 @@ Die Seite „Foto aufnehmen & auswerten“ öffnet am Handy direkt die Kamera, s
 ## Sanierung nach GModG: Dämmdicken und Fenstertausch
 Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js`, Oberfläche: `src/sanierung-ui.js`).
 - **Eingabe:** Wandbaustoff (typisch Köln 1950–1970) und Wandstärke gesamt.
-- **Rechnung:** U-Wert Bestand nach DIN EN ISO 6946 → erforderliche Dämmdicke, damit U ≤ 0,24 W/(m²K) nach **GModG Anlage 7** (bis 28.07.2026 GEG), aufgerundet auf 2 cm. WDVS mit Rse = 0,04; hinterlüftete Vorhangfassade mit Rse = Rsi = 0,13 und ΔU = 0,03 für die Unterkonstruktion.
-- **Fenster:** Fläche aus dem Aufmaß, neue Fenster (Kunststoff / Holz / Holz-Alu, 3-fach) gegen Uw ≤ 1,3 geprüft.
-- **Mengen:** Dämmstoffvolumen = Wand netto × Dicke. Alles steht im JSON-Export unter `sanierung` und kann von den Kosten-/LCA-Modulen genutzt werden.
-- **Annahmen:** Alle λ- und Uw-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar. **Die drei Dämmstoffe je System sind Platzhalter**, bis das Team sie festlegt.
+- **Rechnung:** U-Wert Bestand nach DIN EN ISO 6946 → erforderliche Dämmdicke, damit U ≤ 0,24 W/(m²K) nach **GModG Anlage 7** (bis 28.07.2026 GEG). WDVS mit Rse = 0,04; hinterlüftete Vorhangfassade mit Rse = Rsi = 0,13 und ΔU für die Unterkonstruktion (Holz 0,02 / Alu 0,04).
+- **Dämmstoffe (laut Projektkonzept):** Mineralwolle, EPS, Holzfaser in beiden Systemen. Ausgegeben werden die rechnerische Dicke (genau U = 0,24, für den Vergleich „gleiche Dämmwirkung“) und die Ausführungsdicke (auf 2 cm aufgerundet). Hinweise zu Brandschutz (brennbare Dämmung in VHF, Brandriegel bei EPS-WDVS).
+- **Fenster:** jedes markierte Fenster mit seinen Maßen aus dem Aufmaß; Uw nach DIN EN ISO 10077-1 aus Rahmen (PVC/Holz/Holz-Alu), Verglasung (2-/3-fach) und Rahmenanteil, geprüft gegen Uw ≤ 1,3.
+- **Weitergabe:** Mengen (m², m³) und alle Ergebnisse stehen im JSON-Export unter `sanierung` bzw. über `window.SanierungUI.ergebnis()` für die Kosten- und LCA-Module.
+- **Annahmen:** Alle λ-, Ug-, Uf-, ψ- und ΔU-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar.
 
 ## Tests
 ```bash

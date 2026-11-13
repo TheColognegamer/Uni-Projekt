@@ -36,34 +36,43 @@
     aussen: { name: 'Außenputz (Kalkzement)', d: 0.020, lambda: 1.00, quelle: 'DIN 4108-4' },
   };
 
-  // ---------- Sanierung: Fassadensysteme und Dämmstoffe ----------
+  // ---------- Sanierung: Fassadensysteme und Dämmstoffe (laut Projektkonzept Gruppe 2) ----------
   // deltaU: pauschaler Zuschlag für Wärmebrücken der Befestigung (Dübel bzw. Unterkonstruktion).
+  const UNTERKONSTRUKTION = {
+    holz: { name: 'Holz-Unterkonstruktion', deltaU: 0.02, quelle: 'Annahme (Lattung durchdringt Dämmebene)' },
+    alu: { name: 'Aluminium-Unterkonstruktion', deltaU: 0.04, quelle: 'Annahme (Alu-Konsolen mit Thermostopp)' },
+  };
   const SYSTEME = {
     wdvs: { name: 'WDVS', rse: RSE, deltaU: 0.0, stufe: 0.02, maxDicke: 0.30,
-      hinweis: 'Dübel bei LPh 2 vernachlässigt. Alter Außenputz bleibt als Untergrund und zählt mit.' },
-    vhf: { name: 'Vorhangfassade, hinterlüftet', rse: RSE_HINTERLUEFTET, deltaU: 0.03, stufe: 0.02, maxDicke: 0.30,
-      hinweis: 'ΔU = 0,03 W/(m²K) für die Unterkonstruktion (Annahme, Alu-Konsolen mit Thermostopp). Bekleidung und Luftschicht zählen nicht.' },
+      hinweis: 'Dübel bei LPh 2 vernachlässigt. Alter Außenputz bleibt als Untergrund und zählt mit. Putzsystem (mineralisch/Silikat) beeinflusst U nicht.' },
+    vhf: { name: 'Vorhangfassade, hinterlüftet', rse: RSE_HINTERLUEFTET, deltaU: UNTERKONSTRUKTION.alu.deltaU, stufe: 0.02, maxDicke: 0.30,
+      hinweis: 'ΔU je nach Unterkonstruktion (Holz 0,02 / Alu 0,04 W/(m²K), Annahmen). Bekleidung (Holz/Metall) und Luftschicht zählen nicht.' },
   };
 
-  // PLATZHALTER: Die drei Dämmstoffe je System legt das Team fest. Hier nur Liste und λ eintragen.
-  // λ = Bemessungswert (Herstellerangabe / allgemeine bauaufsichtliche Zulassung prüfen).
+  // Projektkonzept Folie 7/8: in beiden Systemen Mineralwolle, EPS, Holzfaser.
+  // λ = Richtwerte aus der Konzeptskizze; maßgeblich ist das konkrete Produktdatenblatt.
   const DAEMMSTOFFE = {
-    eps: { name: 'EPS (WLS 035)', lambda: 0.035, systeme: ['wdvs'], quelle: 'typischer Bemessungswert, Platzhalter' },
-    mw: { name: 'Mineralwolle (WLS 035)', lambda: 0.035, systeme: ['wdvs', 'vhf'], quelle: 'typischer Bemessungswert, Platzhalter' },
-    holzfaser: { name: 'Holzfaser (WLS 042)', lambda: 0.042, systeme: ['wdvs', 'vhf'], quelle: 'typischer Bemessungswert, Platzhalter' },
-    hanf: { name: 'Hanf (WLS 040)', lambda: 0.040, systeme: ['vhf'], quelle: 'typischer Bemessungswert, Platzhalter' },
+    mw: { name: 'Mineralwolle', lambda: 0.035, brennbar: false, systeme: ['wdvs', 'vhf'], quelle: 'Projektkonzept, Richtwert' },
+    eps: { name: 'EPS', lambda: 0.035, brennbar: true, systeme: ['wdvs', 'vhf'], quelle: 'Projektkonzept, Richtwert' },
+    holzfaser: { name: 'Holzfaser', lambda: 0.040, brennbar: true, systeme: ['wdvs', 'vhf'], quelle: 'Projektkonzept, Richtwert' },
   };
 
-  // ---------- Fenster ----------
+  // ---------- Fenster (DIN EN ISO 10077-1, vereinfacht) ----------
   const FENSTER_BESTAND = {
     einfach: { name: 'Einfachverglasung (Original)', uw: 5.0 },
     verbund: { name: 'Verbund-/Kastenfenster (Original)', uw: 2.7 },
     isolier: { name: 'Isolierglas 2-fach (1970–1995)', uw: 2.8 },
   };
-  const FENSTER_NEU = {
-    kunststoff: { name: 'Kunststoff, 3-fach', uw: 0.95, quelle: 'Richtwert Marktprodukte (Spanne 0,8–1,0)' },
-    holz: { name: 'Holz, 3-fach', uw: 0.95, quelle: 'Richtwert Marktprodukte (Spanne 0,8–1,0)' },
-    holzalu: { name: 'Holz-Alu, 3-fach', uw: 0.90, quelle: 'Richtwert Marktprodukte (Spanne 0,8–1,0)' },
+  // Uf = Rahmen, Richtwerte aktueller Profile (Spanne ca. 0,9–1,4 W/(m²K))
+  const RAHMEN = {
+    pvc: { name: 'PVC (Kunststoff)', uf: 1.1, quelle: 'Richtwert Marktprodukte' },
+    holz: { name: 'Holz', uf: 1.2, quelle: 'Richtwert Marktprodukte (z. B. IV 78)' },
+    holzalu: { name: 'Holz-Alu', uf: 1.2, quelle: 'Richtwert Marktprodukte' },
+  };
+  // Ug = Verglasung, psi = Randverbund (warme Kante)
+  const VERGLASUNG = {
+    zweifach: { name: '2-fach', ug: 1.1, psi: 0.05, quelle: 'Ug Richtwert; ψ warme Kante nach DIN EN ISO 10077-1 Anh. G (Größenordnung)' },
+    dreifach: { name: '3-fach', ug: 0.6, psi: 0.05, quelle: 'Ug Richtwert; ψ warme Kante nach DIN EN ISO 10077-1 Anh. G (Größenordnung)' },
   };
 
   // ---------- Rechnung ----------
@@ -99,7 +108,9 @@
     if (!sys) throw new Error('Unbekanntes System: ' + systemKey);
     if (!dm) throw new Error('Unbekannter Dämmstoff: ' + daemmKey);
     const uMax = opts.uMax ?? ANFORDERUNG.aussenwand.uMax;
-    const deltaU = opts.deltaU ?? sys.deltaU;
+    const uk = systemKey === 'vhf' ? (opts.uk || 'alu') : null;
+    if (uk && !UNTERKONSTRUKTION[uk]) throw new Error('Unbekannte Unterkonstruktion: ' + uk);
+    const deltaU = opts.deltaU ?? (uk ? UNTERKONSTRUKTION[uk].deltaU : sys.deltaU);
     const stufe = opts.stufe ?? sys.stufe;
     const lambda = opts.lambda ?? dm.lambda;
     const uZiel = uMax - deltaU;
@@ -111,9 +122,11 @@
     const warnungen = [];
     if (d > sys.maxDicke) warnungen.push(`Dicke ${(d * 100).toFixed(0)} cm über üblichem Maximum (${sys.maxDicke * 100} cm) – Zulassung/Machbarkeit prüfen.`);
     if (dTheo === 0) warnungen.push('Bestandswand erfüllt den Höchstwert bereits ohne Dämmung.');
+    if (systemKey === 'vhf' && dm.brennbar) warnungen.push('Brennbarer Dämmstoff in hinterlüfteter Fassade: ab Gebäudeklasse 4 sind nach Bauordnung nichtbrennbare Dämmstoffe gefordert – prüfen.');
+    if (systemKey === 'wdvs' && daemmKey === 'eps' && d >= 0.10) warnungen.push('EPS-WDVS ≥ 10 cm: Brandriegel nach Zulassung einplanen.');
     return {
-      system: systemKey, daemmstoff: daemmKey, lambda, deltaU, uMax,
-      dTheoretisch: dTheo, d, uNeu, erfuellt: uNeu <= uMax + 1e-9, warnungen,
+      system: systemKey, daemmstoff: daemmKey, unterkonstruktion: uk, lambda, deltaU, uMax,
+      dTheoretisch: dTheo, d, uNeu, uTheoretisch: dTheo > 0 ? uMax : 1 / (RSI + wand.R + sys.rse) + deltaU, erfuellt: uNeu <= uMax + 1e-9, warnungen,
     };
   }
 
@@ -128,21 +141,40 @@
     return out;
   }
 
-  /** Fenstertausch: Fläche aus dem Foto, neue Fenster müssen Uw <= 1,3 einhalten. */
-  function fensterTausch(flaeche, anzahl, bestandKey, neuKey, opts = {}) {
-    const alt = FENSTER_BESTAND[bestandKey], neu = FENSTER_NEU[neuKey];
-    if (!alt || !neu) throw new Error('Unbekannter Fenstertyp');
-    const uwNeu = opts.uw ?? neu.uw;
+  /**
+   * Uw eines Fensters (DIN EN ISO 10077-1): Uw = (Ag·Ug + Af·Uf + lg·ψ) / Aw.
+   * b, h = Außenmaß in m (aus dem Aufmaß), rahmenanteil = Af/Aw.
+   * Glasumfang lg vereinfacht: Glasfeld mit gleichem Seitenverhältnis, Seiten mit √(1−f) skaliert (ein Flügel).
+   */
+  function uwFenster(b, h, rahmenanteil, rahmenKey, verglasungKey) {
+    const r = RAHMEN[rahmenKey], g = VERGLASUNG[verglasungKey];
+    if (!r || !g) throw new Error('Unbekannter Rahmen oder Verglasung');
+    if (!(b > 0 && h > 0)) throw new Error('Fenstermaße ungültig');
+    if (!(rahmenanteil >= 0 && rahmenanteil < 1)) throw new Error('Rahmenanteil muss zwischen 0 und 1 liegen');
+    const aw = b * h, af = aw * rahmenanteil, ag = aw - af;
+    const k = Math.sqrt(1 - rahmenanteil), lg = 2 * (b * k + h * k);
+    return { aw, ag, af, lg, uw: (ag * g.ug + af * r.uf + lg * g.psi) / aw };
+  }
+
+  /** Fenstertausch für alle Fenster aus dem Aufmaß; neue Fenster müssen Uw <= 1,3 einhalten. */
+  function fensterTausch(fenster, bestandKey, rahmenKey, verglasungKey, rahmenanteil = 0.30) {
+    const alt = FENSTER_BESTAND[bestandKey];
+    if (!alt) throw new Error('Unbekannter Bestandsfenstertyp');
     const uMax = ANFORDERUNG.fenster.uMax;
+    const einzeln = fenster.map((f) => ({ ...f, ...uwFenster(f.b, f.h, rahmenanteil, rahmenKey, verglasungKey) }));
+    const aw = einzeln.reduce((a, f) => a + f.aw, 0);
+    const uwMittel = aw > 0 ? einzeln.reduce((a, f) => a + f.uw * f.aw, 0) / aw : NaN;
     return {
-      bestand: bestandKey, neu: neuKey, flaeche, anzahl,
-      uwAlt: opts.uwAlt ?? alt.uw, uwNeu, uMax, erfuellt: uwNeu <= uMax + 1e-9,
+      bestand: bestandKey, rahmen: rahmenKey, verglasung: verglasungKey, rahmenanteil,
+      anzahl: einzeln.length, flaeche: aw, uwAlt: alt.uw, uwNeu: uwMittel, uMax,
+      erfuellt: einzeln.length > 0 && einzeln.every((f) => f.uw <= uMax + 1e-9), einzeln,
     };
   }
 
   const api = {
-    ANFORDERUNG, RSI, RSE, RSE_HINTERLUEFTET, WANDBAUSTOFFE, PUTZ, SYSTEME, DAEMMSTOFFE, FENSTER_BESTAND, FENSTER_NEU,
-    uWert, bestandswand, daemmdicke, variantenWand, fensterTausch, aufrunden,
+    ANFORDERUNG, RSI, RSE, RSE_HINTERLUEFTET, WANDBAUSTOFFE, PUTZ, UNTERKONSTRUKTION, SYSTEME, DAEMMSTOFFE,
+    FENSTER_BESTAND, RAHMEN, VERGLASUNG,
+    uWert, bestandswand, daemmdicke, variantenWand, uwFenster, fensterTausch, aufrunden,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Bauphysik = api;

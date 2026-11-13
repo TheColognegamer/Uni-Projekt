@@ -73,6 +73,15 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Tool/Modell:** Claude (Opus 5.5) mit GitHub-Anbindung, Arbeit im eigenen Branch `claude/arbeitsbereich`.
 - **KI-Ergebnis:** `src/bauphysik.js` (Kennwerte + Rechnung), `src/sanierung-ui.js` (Panel 4/5), Anbindung an das Aufmaß über das Ereignis `flaechen`, JSON-Export `sanierung`, Test `tests/bauphysik.test.js`.
 - **Recherche der KI:** Das GEG heißt seit 29.07.2026 GModG (BGBl. 2026 I Nr. 226); Höchstwerte Anlage 7 unverändert: Außenwand 0,24, Fenster Uw 1,3 W/(m²K).
-- **Annahmen, die das Team prüfen muss:** λ-Werte der Bestandsbaustoffe (Bims- und Trümmerbeton sind Schätzwerte), ΔU = 0,03 für die VHF-Unterkonstruktion, Uw der neuen Fenster (Marktrichtwerte), Putzdicken 1,5 + 2 cm. **Dämmstoffe sind Platzhalter** (EPS/MW/Holzfaser bzw. MW/Holzfaser/Hanf), bis die Gruppe ihre Auswahl liefert.
+- **Annahmen, die das Team prüfen muss:** λ-Werte der Bestandsbaustoffe (Bims- und Trümmerbeton sind Schätzwerte), ΔU = 0,03 für die VHF-Unterkonstruktion, Uw der neuen Fenster (Marktrichtwerte), Putzdicken 1,5 + 2 cm. Dämmstoffe zunächst Platzhalter (siehe P-06).
 - **Prüfung:** Unit-Test gegen Handrechnung (Vollziegel 36,5 cm: U = 1,51; EPS 035 → 12,3 cm → 14 cm, U = 0,214); Browser-Test mit Demo-Fassade (Wand netto 53,28 m² korrekt übernommen).
 - **Grenzen:** Vereinfachtes Verfahren für LPh 2, keine Feuchte-/Tauwasserprüfung, keine Laibungs- und Sockeldetails, Dübel im WDVS vernachlässigt.
+
+### P-06 · Abgleich mit dem Projektkonzept · 13.11.2026 · Moritz
+- **Ziel:** Rechenmodul an die Festlegungen im Projektkonzept (PDF) anpassen.
+- **Prompt:** Projektkonzept als Anhang (vorher: „Dämmstoffe haben wir schon festgelegt“, LCC „guck im Anhang“).
+- **KI-Ergebnis:** Dämmstoffe in beiden Systemen Mineralwolle/EPS/Holzfaser (λ 0,035/0,035/0,040 laut Konzept); VHF-Unterkonstruktion Holz oder Alu als Auswahl; Spalte „rechnerische Dicke“ für den Vergleich bei gleicher Dämmwirkung; Fenster Uw nach DIN EN ISO 10077-1 aus Rahmen (PVC/Holz/Holz-Alu), 2-/3-fach-Verglasung und Rahmenanteil, je Fenster mit Maßen aus dem Aufmaß.
+- **Fachliche Hinweise der KI:** EPS und Holzfaser in hinterlüfteten Fassaden sind brennbar; ab Gebäudeklasse 4 fordert die Bauordnung nichtbrennbare Dämmstoffe – vom Team zu prüfen. 2-fach-Verglasung liegt bei kleinen Fenstern über Uw 1,3 (z. B. 0,6 × 0,8 m Holz: 1,37).
+- **Nicht umgesetzt (anderer Teil):** LCC über 20/30/50 Jahre und THG (Module A1–A5, B4, C1–C4, D); das Konzept enthält dafür noch keine Zahlen. Die Mengen werden für diese Module bereitgestellt.
+- **Prüfung:** Unit-Tests gegen Handrechnung (u. a. Uw PVC 3-fach 1,2 × 1,4 m = 0,88), Browser-Test mit Demo-Fassade (Fenstermaße 1,20 × 1,40 m korrekt erkannt).
+- **Unsicher/Annahmen:** ΔU der Unterkonstruktionen, Ug/Uf/ψ-Richtwerte, Glasumfang vereinfacht (ein Flügel).

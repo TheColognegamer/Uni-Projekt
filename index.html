@@ -69,11 +69,13 @@
     <div class="row inline">Wandstärke gesamt <input id="sDicke" type="number" step="0.5" min="10" value="40"> cm
       <label class="small"><input id="sPutz" type="checkbox" checked> inkl. Putz (1,5 + 2 cm)</label></div>
     <p class="small" id="sBestand"></p>
+    <div class="row inline">VHF-Unterkonstruktion <select id="sUk"></select></div>
     <table id="sVarianten"></table>
     <p class="small" id="sHinweise"></p>
     <h2>5 · Fenstertausch</h2>
     <div class="row inline">Bestand <select id="fAlt"></select></div>
-    <div class="row inline">Neu <select id="fNeu"></select></div>
+    <div class="row inline">Neu <select id="fRahmen"></select> <select id="fGlas"></select></div>
+    <div class="row inline">Rahmenanteil <input id="fAnteil" type="number" step="1" min="0" max="90" value="30"> %</div>
     <table id="fRes"></table>
 
     <h2>Evaluation (H1 · H2)</h2>

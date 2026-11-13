@@ -91,3 +91,10 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Prompt (Kurzfassung):** „Die Fläche kommt von jemand anders, du musst daran anknüpfen … Kosten und CO₂ macht jemand anders und muss auf meine Dämmdicken und Fenster abgreifen.“
 - **KI-Ergebnis:** Ausgangsereignis `sanierung`, Beschreibung beider Schnittstellen mit Feldern und Einheiten in `docs/schnittstelle-sanierung.md`.
 - **Prüfung:** Browser-Test mit simuliertem Aufmaß-Ereignis (100 m² Wand, 3 Fenster 1,5 × 2 m) → 6 Varianten, Volumen EPS-WDVS 14 m³, Uw 0,85.
+
+### P-08 · Amtliche Wandkonstruktionen, Laien-Eingabe, Flächen-Annahme · 13.11.2026 · Moritz
+- **Prompt (Kurzfassung):** „Wandbaustoff mit den Materialien der Jahre hinterlegen, die es offiziell gibt. Ein Investor ist kein Fachmann. Bei den Fenstern den Bestand weglassen. Als Flächen und Fenster einfach mal was annehmen.“
+- **KI-Ergebnis:** Bestandswand jetzt über Baujahr + Wandart + Wandstärke mit amtlichen Pauschal-U-Werten aus der *Bekanntmachung der Regeln zur Datenaufnahme und Datenverwendung im Wohngebäudebestand* vom 08.10.2020 (BAnz AT 04.12.2020 B1), Tab. 2; die vorher von der KI geschätzten λ-Werte (z. B. Bims, Trümmerbeton) sind entfernt. Wandarten mit kurzer Erkennungshilfe für Laien. Fensterbestand entfernt; stattdessen Tabelle aller 6 möglichen Fenster mit Uw und Zulässigkeit. Angenommene Flächen (250 m² Fassade, 16 Fenster 1,20 × 1,40 m), die automatisch durch das Aufmaß ersetzt werden.
+- **Auffälligkeit:** Tabelle 2 nennt für Vollstein-Wände ab 1958 „keine Angabe“; das Tool nimmt dann ersatzweise „Sonstige massive Wandaufbauten“ und weist darauf hin.
+- **Prüfung:** Unit-Tests gegen Tabellenwerte und Handrechnung; Browser-Test mit Annahme und mit simuliertem Aufmaß.
+- **Vom Team zu prüfen:** Werte gegen das Original im Bundesanzeiger abgleichen (von der KI über eine Textfassung gelesen); Beispielflächen.

@@ -21,19 +21,53 @@
   const RSE = 0.04;              // direkt an Außenluft (WDVS)
   const RSE_HINTERLUEFTET = 0.13; // stark belüftete Luftschicht: Rse = Rsi, Bekleidung zählt nicht
 
-  // ---------- Bestand: typische Wandbaustoffe Köln 1950–1970 ----------
-  // λ = Bemessungswert Wärmeleitfähigkeit in W/(m·K)
-  const WANDBAUSTOFFE = {
-    vollziegel: { name: 'Vollziegel (ρ ≈ 1800 kg/m³)', lambda: 0.81, quelle: 'DIN 4108-4, Tab. 1' },
-    hlz: { name: 'Hochlochziegel (ρ ≈ 1200 kg/m³)', lambda: 0.50, quelle: 'DIN 4108-4, Richtwert (Spanne 0,50–0,60)' },
-    bims: { name: 'Bims-/Leichtbeton-Hohlblock (ρ ≈ 1000 kg/m³)', lambda: 0.46, quelle: 'Annahme, Spanne DIN 4108-4 ca. 0,36–0,55; im Rheinland häufig' },
-    ks: { name: 'Kalksandstein (ρ ≈ 1800 kg/m³)', lambda: 0.99, quelle: 'DIN 4108-4, Tab. 1' },
-    truemmer: { name: 'Trümmerschutt-/Splittbeton', lambda: 0.75, quelle: 'Annahme (Nachkriegsbau, stark schwankend)' },
-    beton: { name: 'Stahlbeton', lambda: 2.3, quelle: 'DIN EN ISO 10456' },
-  };
-  const PUTZ = {
-    innen: { name: 'Innenputz (Kalkgips)', d: 0.015, lambda: 0.70, quelle: 'DIN 4108-4' },
-    aussen: { name: 'Außenputz (Kalkzement)', d: 0.020, lambda: 1.00, quelle: 'DIN 4108-4' },
+  // ---------- Bestand: amtliche Pauschalwerte nach Baualtersklasse ----------
+  // Quelle: Bekanntmachung der Regeln zur Datenaufnahme und Datenverwendung im Wohngebäudebestand
+  // vom 8. Oktober 2020 (BAnz AT 04.12.2020 B1), Tabelle 2: Außenwand, nicht nachträglich gedämmt.
+  // Werte gelten inkl. Rsi/Rse. null = „keine Angabe“ in der Tabelle.
+  const QUELLE_BESTAND = 'Bekanntmachung Datenaufnahme Wohngebäudebestand 2020 (BAnz AT 04.12.2020 B1), Tab. 2';
+  const BAUALTERSKLASSEN = [
+    { key: 'D', von: 1949, bis: 1957 },
+    { key: 'E', von: 1958, bis: 1968 },
+    { key: 'F', von: 1969, bis: 1978 },
+  ];
+  // u: Werte je Klasse [D, E, F]; bei dickenabhängigen Zeilen je Dickenband (Wandstärke in m, obere Grenze)
+  const WANDKONSTRUKTIONEN = {
+    lochstein: {
+      name: 'Steine mit Hohlräumen: Hochlochziegel oder Bims-Hohlblocksteine',
+      laie: 'Häufigste Bauweise 1950–1970. Bei Bohrungen fällt man in Hohlräume; Bims-Steine sind grau und leicht.',
+      zeile: 'Massivwand Hochlochziegel, Bimsbeton-Hohlsteine o. ä.', u: [1.4, 1.4, 1.0],
+    },
+    vollstein: {
+      name: 'Massive Vollsteine: Vollziegel, Kalksandstein, Bims-Vollstein, Naturstein',
+      laie: 'Schwere Wand ohne Hohlräume; Bohrstaub rot (Ziegel) oder weiß (Kalksandstein).',
+      zeile: 'Massivwand Vollziegel, Naturstein, KS, Bimsbeton-Vollstein',
+      baender: [
+        { bis: 0.20, text: 'bis 20 cm', u: [2.8, null, null] },
+        { bis: 0.30, text: '20–30 cm', u: [1.8, null, null] },
+        { bis: Infinity, text: 'über 30 cm', u: [1.5, null, null] },
+      ],
+      ersatz: 'sonstige',
+    },
+    zweischalig: {
+      name: 'Zweischalig mit Klinker außen, ohne Dämmung',
+      laie: 'Außen sichtbare Klinker-/Verblendsteine, dahinter Luftschicht und Innenwand.',
+      zeile: 'Zweischalig ohne Dämmschicht', u: [1.3, 1.4, 1.0],
+    },
+    zweischaligDaemm: {
+      name: 'Zweischalig mit Klinker außen, mit Dämmschicht',
+      laie: 'Wie oben, zwischen den Schalen liegt bereits eine dünne Dämmung.',
+      zeile: 'Zweischalig mit Dämmschicht', u: [1.0, 0.90, 0.90],
+    },
+    sonstige: {
+      name: 'Sonstige massive Wand / weiß nicht',
+      laie: 'Wenn unklar: Wert für sonstige massive Wände (z. B. Beton, Trümmerschutt).',
+      zeile: 'Sonstige massive Wandaufbauten',
+      baender: [
+        { bis: 0.20, text: 'bis 20 cm', u: [3.0, 1.4, 1.0] },
+        { bis: Infinity, text: 'über 20 cm', u: [2.2, 1.4, 1.0] },
+      ],
+    },
   };
 
   // ---------- Sanierung: Fassadensysteme und Dämmstoffe (laut Projektkonzept Gruppe 2) ----------
@@ -44,7 +78,7 @@
   };
   const SYSTEME = {
     wdvs: { name: 'WDVS', rse: RSE, deltaU: 0.0, stufe: 0.02, maxDicke: 0.30,
-      hinweis: 'Dübel bei LPh 2 vernachlässigt. Alter Außenputz bleibt als Untergrund und zählt mit. Putzsystem (mineralisch/Silikat) beeinflusst U nicht.' },
+      hinweis: 'Dübel bei LPh 2 vernachlässigt. Putzsystem (mineralisch/Silikat) beeinflusst U nicht.' },
     vhf: { name: 'Vorhangfassade, hinterlüftet', rse: RSE_HINTERLUEFTET, deltaU: UNTERKONSTRUKTION.alu.deltaU, stufe: 0.02, maxDicke: 0.30,
       hinweis: 'ΔU je nach Unterkonstruktion (Holz 0,02 / Alu 0,04 W/(m²K), Annahmen). Bekleidung (Holz/Metall) und Luftschicht zählen nicht.' },
   };
@@ -58,11 +92,6 @@
   };
 
   // ---------- Fenster (DIN EN ISO 10077-1, vereinfacht) ----------
-  const FENSTER_BESTAND = {
-    einfach: { name: 'Einfachverglasung (Original)', uw: 5.0 },
-    verbund: { name: 'Verbund-/Kastenfenster (Original)', uw: 2.7 },
-    isolier: { name: 'Isolierglas 2-fach (1970–1995)', uw: 2.8 },
-  };
   // Uf = Rahmen, Richtwerte aktueller Profile (Spanne ca. 0,9–1,4 W/(m²K))
   const RAHMEN = {
     pvc: { name: 'PVC (Kunststoff)', uf: 1.1, quelle: 'Richtwert Marktprodukte' },
@@ -86,15 +115,37 @@
     return 1 / (rsi + sumR(schichten) + rse);
   }
 
-  /** Bestandswand aus Gesamtstärke (inkl. Putz) und Baustoff. dicke in m. */
-  function bestandswand(baustoffKey, gesamtDicke, mitPutz = true) {
-    const b = WANDBAUSTOFFE[baustoffKey];
-    if (!b) throw new Error('Unbekannter Wandbaustoff: ' + baustoffKey);
-    const putz = mitPutz ? [PUTZ.innen, PUTZ.aussen] : [];
-    const dMauer = gesamtDicke - putz.reduce((a, p) => a + p.d, 0);
-    if (!(dMauer > 0.05)) throw new Error('Wandstärke zu gering (Mauerwerk < 5 cm)');
-    const schichten = [...(mitPutz ? [PUTZ.innen] : []), { name: b.name, d: dMauer, lambda: b.lambda }, ...(mitPutz ? [PUTZ.aussen] : [])];
-    return { baustoff: baustoffKey, gesamtDicke, dMauer, schichten, R: sumR(schichten), u: uWert(schichten) };
+  function baualtersklasse(baujahr) {
+    const i = BAUALTERSKLASSEN.findIndex((k) => baujahr >= k.von && baujahr <= k.bis);
+    if (i < 0) throw new Error('Das Tool ist für Baujahre 1949–1978 ausgelegt (Schwerpunkt 1950–1970).');
+    return { index: i, ...BAUALTERSKLASSEN[i] };
+  }
+
+  /**
+   * Bestandswand aus Baujahr, Wandart und Wandstärke (m) mit amtlichem Pauschal-U-Wert.
+   * R der Wand (ohne Übergänge) = 1/U − Rsi − Rse; damit wird die Dämmdicke berechnet.
+   */
+  function bestandswand(baujahr, konstruktionKey, dicke) {
+    const kl = baualtersklasse(baujahr);
+    let k = WANDKONSTRUKTIONEN[konstruktionKey], key = konstruktionKey;
+    if (!k) throw new Error('Unbekannte Wandart: ' + konstruktionKey);
+    if (!(dicke >= 0.10 && dicke <= 1.0)) throw new Error('Wandstärke bitte zwischen 10 und 100 cm angeben.');
+    const hinweise = [];
+    const wert = (kk) => {
+      if (!kk.baender) return { u: kk.u[kl.index], zeile: kk.zeile };
+      const band = kk.baender.find((x) => dicke <= x.bis + 1e-9);
+      return { u: band.u[kl.index], zeile: `${kk.zeile}, ${band.text}` };
+    };
+    let w = wert(k);
+    if (w.u == null && k.ersatz) {
+      hinweise.push(`Für „${k.name}“ enthält die Tabelle für ${kl.von}–${kl.bis} keinen Wert; ersatzweise „Sonstige massive Wandaufbauten“.`);
+      key = k.ersatz; k = WANDKONSTRUKTIONEN[key]; w = wert(k);
+    }
+    const R = 1 / w.u - RSI - RSE;
+    return {
+      baujahr, klasse: `${kl.von}–${kl.bis}`, konstruktion: key, gesamtDicke: dicke,
+      u: w.u, R, zeile: w.zeile, quelle: QUELLE_BESTAND, hinweise,
+    };
   }
 
   const aufrunden = (x, stufe) => Math.ceil(x / stufe - 1e-9) * stufe;
@@ -122,6 +173,7 @@
     const warnungen = [];
     if (d > sys.maxDicke) warnungen.push(`Dicke ${(d * 100).toFixed(0)} cm über üblichem Maximum (${sys.maxDicke * 100} cm) – Zulassung/Machbarkeit prüfen.`);
     if (dTheo === 0) warnungen.push('Bestandswand erfüllt den Höchstwert bereits ohne Dämmung.');
+    if (wand.konstruktion && wand.konstruktion.startsWith('zweischalig')) warnungen.push('Zweischalige Wand: Kerndämmung der Luftschicht als günstige Alternative prüfen; Außendämmung auf Klinker nur mit Zulassung.');
     if (systemKey === 'vhf' && dm.brennbar) warnungen.push('Brennbarer Dämmstoff in hinterlüfteter Fassade: ab Gebäudeklasse 4 sind nach Bauordnung nichtbrennbare Dämmstoffe gefordert – prüfen.');
     if (systemKey === 'wdvs' && daemmKey === 'eps' && d >= 0.10) warnungen.push('EPS-WDVS ≥ 10 cm: Brandriegel nach Zulassung einplanen.');
     return {
@@ -156,25 +208,31 @@
     return { aw, ag, af, lg, uw: (ag * g.ug + af * r.uf + lg * g.psi) / aw };
   }
 
-  /** Fenstertausch für alle Fenster aus dem Aufmaß; neue Fenster müssen Uw <= 1,3 einhalten. */
-  function fensterTausch(fenster, bestandKey, rahmenKey, verglasungKey, rahmenanteil = 0.30) {
-    const alt = FENSTER_BESTAND[bestandKey];
-    if (!alt) throw new Error('Unbekannter Bestandsfenstertyp');
+  /** Fenstertausch für alle Fenster; neue Fenster müssen Uw <= 1,3 einhalten. */
+  function fensterTausch(fenster, rahmenKey, verglasungKey, rahmenanteil = 0.30) {
     const uMax = ANFORDERUNG.fenster.uMax;
     const einzeln = fenster.map((f) => ({ ...f, ...uwFenster(f.b, f.h, rahmenanteil, rahmenKey, verglasungKey) }));
     const aw = einzeln.reduce((a, f) => a + f.aw, 0);
     const uwMittel = aw > 0 ? einzeln.reduce((a, f) => a + f.uw * f.aw, 0) / aw : NaN;
     return {
-      bestand: bestandKey, rahmen: rahmenKey, verglasung: verglasungKey, rahmenanteil,
-      anzahl: einzeln.length, flaeche: aw, uwAlt: alt.uw, uwNeu: uwMittel, uMax,
+      rahmen: rahmenKey, verglasung: verglasungKey, rahmenanteil,
+      anzahl: einzeln.length, flaeche: aw, uwNeu: uwMittel, uMax,
+      flaecheGlas: einzeln.reduce((a, f) => a + f.ag, 0), flaecheRahmen: einzeln.reduce((a, f) => a + f.af, 0),
       erfuellt: einzeln.length > 0 && einzeln.every((f) => f.uw <= uMax + 1e-9), einzeln,
     };
   }
 
+  /** Alle 6 Fensteroptionen (3 Rahmen × 2 Verglasungen) zum Vergleich. */
+  function fensterOptionen(fenster, rahmenanteil = 0.30) {
+    const out = [];
+    for (const r of Object.keys(RAHMEN)) for (const g of Object.keys(VERGLASUNG)) out.push(fensterTausch(fenster, r, g, rahmenanteil));
+    return out;
+  }
+
   const api = {
-    ANFORDERUNG, RSI, RSE, RSE_HINTERLUEFTET, WANDBAUSTOFFE, PUTZ, UNTERKONSTRUKTION, SYSTEME, DAEMMSTOFFE,
-    FENSTER_BESTAND, RAHMEN, VERGLASUNG,
-    uWert, bestandswand, daemmdicke, variantenWand, uwFenster, fensterTausch, aufrunden,
+    ANFORDERUNG, RSI, RSE, RSE_HINTERLUEFTET, QUELLE_BESTAND, BAUALTERSKLASSEN, WANDKONSTRUKTIONEN,
+    UNTERKONSTRUKTION, SYSTEME, DAEMMSTOFFE, RAHMEN, VERGLASUNG,
+    uWert, baualtersklasse, bestandswand, daemmdicke, variantenWand, uwFenster, fensterTausch, fensterOptionen, aufrunden,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Bauphysik = api;

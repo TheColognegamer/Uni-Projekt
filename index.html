@@ -63,20 +63,30 @@
     <ul id="warnings" class="warn"></ul>
     <ul id="shapes"></ul>
 
-    <h2>4 · Sanierung nach GModG (U-Werte)</h2>
-    <p class="small">Höchstwerte nach GModG Anlage 7: Außenwand U ≤ 0,24, Fenster U<sub>w</sub> ≤ 1,3 W/(m²K). Alle Kennwerte sind Annahmen für Leistungsphase 2.</p>
-    <div class="row inline">Wandbaustoff <select id="sWand"></select></div>
-    <div class="row inline">Wandstärke gesamt <input id="sDicke" type="number" step="0.5" min="10" value="40"> cm
-      <label class="small"><input id="sPutz" type="checkbox" checked> inkl. Putz (1,5 + 2 cm)</label></div>
+    <h2>4 · Ihr Gebäude</h2>
+    <div class="row inline">Baujahr <input id="sBaujahr" type="number" step="1" min="1949" max="1978" value="1960"></div>
+    <div class="row inline">Wie ist die Außenwand gebaut?</div>
+    <div id="sKonstr" class="choices"></div>
+    <div class="row inline">Wandstärke <input id="sDicke" type="number" step="1" min="10" max="100" value="36"> cm
+      <span class="small">an Fenster- oder Türlaibung messen, inkl. Putz</span></div>
     <p class="small" id="sBestand"></p>
-    <div class="row inline">VHF-Unterkonstruktion <select id="sUk"></select></div>
+
+    <h2>5 · Flächen <span id="flQuelle" class="tag"></span></h2>
+    <div class="row inline">Fassade gesamt <input id="aFassade" type="number" step="1" min="1" value="250"> m²</div>
+    <div class="row inline">Fenster <input id="aAnz" type="number" step="1" min="0" value="16"> Stück à
+      <input id="aB" type="number" step="0.05" min="0.2" value="1.2"> × <input id="aH" type="number" step="0.05" min="0.2" value="1.4"> m</div>
+    <p class="small" id="flInfo"></p>
+
+    <h2>6 · Dämmung nach GModG</h2>
+    <div class="row inline">Vorhangfassade: Unterkonstruktion <select id="sUk"></select></div>
     <table id="sVarianten"></table>
     <p class="small" id="sHinweise"></p>
-    <h2>5 · Fenstertausch</h2>
-    <div class="row inline">Bestand <select id="fAlt"></select></div>
-    <div class="row inline">Neu <select id="fRahmen"></select> <select id="fGlas"></select></div>
-    <div class="row inline">Rahmenanteil <input id="fAnteil" type="number" step="1" min="0" max="90" value="30"> %</div>
+
+    <h2>7 · Mögliche Fenster</h2>
+    <div class="row inline">Rahmenanteil <input id="fAnteil" type="number" step="1" min="0" max="90" value="30"> %
+      <span class="small">typisch 25–35 %</span></div>
     <table id="fRes"></table>
+    <p class="small" id="fInfo"></p>
 
     <h2>Evaluation (H1 · H2)</h2>
     <div class="row inline">Zeit <b id="timer">–</b>

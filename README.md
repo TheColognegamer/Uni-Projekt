@@ -32,10 +32,12 @@ Die Seite „Foto aufnehmen & auswerten“ öffnet am Handy direkt die Kamera, s
 
 ## Sanierung nach GModG: Dämmdicken und Fenstertausch
 Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js`, Oberfläche: `src/sanierung-ui.js`).
-- **Eingabe:** Wandbaustoff (typisch Köln 1950–1970) und Wandstärke gesamt.
-- **Rechnung:** U-Wert Bestand nach DIN EN ISO 6946 → erforderliche Dämmdicke, damit U ≤ 0,24 W/(m²K) nach **GModG Anlage 7** (bis 28.07.2026 GEG). WDVS mit Rse = 0,04; hinterlüftete Vorhangfassade mit Rse = Rsi = 0,13 und ΔU für die Unterkonstruktion (Holz 0,02 / Alu 0,04).
+- **Eingabe (laienverständlich):** Baujahr, Wandart (Auswahl mit Erkennungshilfe) und Wandstärke.
+- **Bestand:** amtlicher Pauschal-U-Wert nach *Bekanntmachung der Regeln zur Datenaufnahme im Wohngebäudebestand* (2020, Tab. 2) je Baualtersklasse 1949–57 / 1958–68 / 1969–78.
+- **Flächen:** aus dem Aufmaß-Modul; solange keins vorliegt, angenommene Flächen (Beispiel 250 m² Fassade, 16 Fenster).
+- **Rechnung:** R der Bestandswand = 1/U − Rsi − Rse → erforderliche Dämmdicke, damit U ≤ 0,24 W/(m²K) nach **GModG Anlage 7** (bis 28.07.2026 GEG). WDVS mit Rse = 0,04; hinterlüftete Vorhangfassade mit Rse = Rsi = 0,13 und ΔU für die Unterkonstruktion (Holz 0,02 / Alu 0,04).
 - **Dämmstoffe (laut Projektkonzept):** Mineralwolle, EPS, Holzfaser in beiden Systemen. Ausgegeben werden die rechnerische Dicke (genau U = 0,24, für den Vergleich „gleiche Dämmwirkung“) und die Ausführungsdicke (auf 2 cm aufgerundet). Hinweise zu Brandschutz (brennbare Dämmung in VHF, Brandriegel bei EPS-WDVS).
-- **Fenster:** jedes markierte Fenster mit seinen Maßen aus dem Aufmaß; Uw nach DIN EN ISO 10077-1 aus Rahmen (PVC/Holz/Holz-Alu), Verglasung (2-/3-fach) und Rahmenanteil, geprüft gegen Uw ≤ 1,3.
+- **Mögliche Fenster:** alle 6 Optionen (PVC/Holz/Holz-Alu × 2-/3-fach) mit Uw nach DIN EN ISO 10077-1 aus den Fenstermaßen und dem Rahmenanteil, geprüft gegen Uw ≤ 1,3.
 - **Schnittstellen:** Eingang Ereignis `flaechen` (vom Aufmaß), Ausgang Ereignis `sanierung` bzw. `window.SanierungUI.ergebnis()` (für Kosten/CO₂). Felder und Einheiten: `docs/schnittstelle-sanierung.md`.
 - **Annahmen:** Alle λ-, Ug-, Uf-, ψ- und ΔU-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar.
 

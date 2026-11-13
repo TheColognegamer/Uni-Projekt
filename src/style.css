@@ -30,3 +30,8 @@ button.primary,.btn.primary{background:var(--accent);border-color:var(--accent);
 .sum{margin:10px 0 0;font-weight:600}.sum:empty{display:none}
 select{font:inherit;padding:4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);max-width:100%}
 #sVarianten td,#fRes td{font-size:13px}
+.choices label{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;margin:4px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:13px}
+.choices label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.choices small{display:block;color:var(--muted)}
+.tag{font-size:11px;text-transform:none;letter-spacing:0;padding:1px 6px;border-radius:6px;background:var(--line);color:var(--fg);font-weight:400}
+#sVarianten td,#fRes td{padding-right:4px;white-space:nowrap}#sVarianten td:first-child,#fRes td:first-child{white-space:normal}

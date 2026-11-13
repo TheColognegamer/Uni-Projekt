@@ -133,6 +133,40 @@
     dreifach: { name: '3-fach', ug: 0.6, psi: 0.05, quelle: 'Ug Richtwert; ψ warme Kante nach DIN EN ISO 10077-1 Anh. G (Größenordnung)' },
   };
 
+  // ---------- Brandschutz (Orientierung LPh 2, ersetzt keine Fachplanung) ----------
+  // Gebäudeklasse nach MBO § 2 vereinfacht über die Fußbodenhöhe des obersten Geschosses.
+  // GK 1–3 und GK 4–5 werden zusammengefasst, weil die Anforderungen an die Fassade jeweils gleich sind.
+  const GEBAEUDEKLASSEN = {
+    gk13: { name: 'Gebäudeklasse 1–3', kurz: 'GK 1–3', text: 'oberstes Geschoss bis 7 m' },
+    gk45: { name: 'Gebäudeklasse 4–5', kurz: 'GK 4–5', text: 'oberstes Geschoss 7–22 m' },
+    hochhaus: { name: 'Hochhaus', kurz: 'Hochhaus', text: 'oberstes Geschoss über 22 m' },
+  };
+  const GESCHOSSHOEHE = 2.8; // m, Annahme Wohnungsbau 1950–1970
+  const EG_HOEHE = 0.6;      // m, Fußboden Erdgeschoss über Gelände (Annahme)
+
+  /** Gebäudeklasse aus der Zahl der oberirdischen Geschosse (inkl. EG). */
+  function gebaeudeklasse(geschosse) {
+    if (!(Number.isInteger(geschosse) && geschosse >= 1 && geschosse <= 40)) throw new Error('Bitte die Anzahl der Geschosse (1–40) angeben.');
+    const h = EG_HOEHE + (geschosse - 1) * GESCHOSSHOEHE;
+    const key = h <= 7 ? 'gk13' : h <= 22 ? 'gk45' : 'hochhaus';
+    return { geschosse, hoehe: h, key, ...GEBAEUDEKLASSEN[key] };
+  }
+
+  /** Ist die Kombination System × Dämmstoff in der Gebäudeklasse zulässig? */
+  function brandschutz(systemKey, daemmKey, gkKey) {
+    const dm = DAEMMSTOFFE[daemmKey];
+    if (!GEBAEUDEKLASSEN[gkKey]) throw new Error('Unbekannte Gebäudeklasse: ' + gkKey);
+    const r = (zulaessig, grund, auflage = null) => ({ zulaessig, grund, auflage });
+    if (!dm.brennbar) return r(true, 'nichtbrennbar (A1/A2)');
+    if (gkKey === 'hochhaus') return r(false, 'Hochhaus: nur nichtbrennbare Dämmstoffe zulässig');
+    if (gkKey === 'gk13') {
+      return r(true, 'GK 1–3: normalentflammbare Dämmung zulässig (MBO § 28)', daemmKey === 'eps' ? 'Vorgaben der Systemzulassung beachten' : null);
+    }
+    if (systemKey === 'vhf') return r(false, 'Hinterlüftete Fassade ab GK 4: Dämmung muss nichtbrennbar sein (MVV TB Anhang 6, Nr. 3.1)');
+    if (daemmKey === 'eps') return r(true, 'schwerentflammbares EPS-WDVS mit Zulassung', 'Brandriegel aus Mineralwolle (Sockel und mind. jedes 2. Geschoss) oder Sturzschutz nach Zulassung');
+    return r(false, 'ab GK 4 schwerentflammbar gefordert (MBO § 28 Abs. 3); Holzfaser ist normalentflammbar – nur mit Systemzulassung als schwerentflammbar');
+  }
+
   // ---------- Rechnung ----------
   const sumR = (schichten) => schichten.reduce((a, s) => {
     if (!(s.d >= 0) || !(s.lambda > 0)) throw new Error('Ungültige Schicht: ' + (s.name || JSON.stringify(s)));
@@ -208,10 +242,9 @@
     if (d > sys.maxDicke) warnungen.push(`Dicke ${(d * 100).toFixed(0)} cm über üblichem Maximum (${sys.maxDicke * 100} cm) – Zulassung/Machbarkeit prüfen.`);
     if (dTheo === 0) warnungen.push('Bestandswand erfüllt den Höchstwert bereits ohne Dämmung.');
     if (wand.konstruktion && wand.konstruktion.startsWith('zweischalig')) warnungen.push('Zweischalige Wand: Kerndämmung der Luftschicht als günstige Alternative prüfen; Außendämmung auf Klinker nur mit Zulassung.');
-    if (systemKey === 'vhf' && dm.brennbar) warnungen.push('Brennbarer Dämmstoff in hinterlüfteter Fassade: ab Gebäudeklasse 4 sind nach Bauordnung nichtbrennbare Dämmstoffe gefordert – prüfen.');
-    if (systemKey === 'wdvs' && daemmKey === 'eps' && d >= 0.10) warnungen.push('EPS-WDVS ≥ 10 cm: Brandriegel nach Zulassung einplanen.');
     return {
       system: systemKey, daemmstoff: daemmKey, unterkonstruktion: uk, lambda, deltaU, uMax,
+      brandschutz: opts.gk ? brandschutz(systemKey, daemmKey, opts.gk) : null,
       dTheoretisch: dTheo, d, uNeu, uTheoretisch: dTheo > 0 ? uMax : 1 / (RSI + wand.R + sys.rse) + deltaU, erfuellt: uNeu <= uMax + 1e-9, warnungen,
     };
   }
@@ -221,7 +254,7 @@
     const out = [];
     for (const sk of Object.keys(SYSTEME)) {
       for (const [dk, dm] of Object.entries(DAEMMSTOFFE)) {
-        if (dm.systeme.includes(sk)) out.push(daemmdicke(wand, sk, dk, (opts[sk] || {})));
+        if (dm.systeme.includes(sk)) out.push(daemmdicke(wand, sk, dk, { gk: opts.gk, ...(opts[sk] || {}) }));
       }
     }
     return out;
@@ -265,8 +298,8 @@
 
   const api = {
     ANFORDERUNG, RSI, RSE, RSE_HINTERLUEFTET, QUELLE_BESTAND, BAUALTERSKLASSEN, WANDKONSTRUKTIONEN,
-    UNTERKONSTRUKTION, SYSTEME, DAEMMSTOFFE, RAHMEN, VERGLASUNG,
-    uWert, baualtersklasse, bestandswand, daemmdicke, variantenWand, uwFenster, fensterTausch, fensterOptionen, aufrunden,
+    UNTERKONSTRUKTION, SYSTEME, DAEMMSTOFFE, RAHMEN, VERGLASUNG, GEBAEUDEKLASSEN, GESCHOSSHOEHE, EG_HOEHE,
+    gebaeudeklasse, brandschutz, uWert, baualtersklasse, bestandswand, daemmdicke, variantenWand, uwFenster, fensterTausch, fensterOptionen, aufrunden,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Bauphysik = api;

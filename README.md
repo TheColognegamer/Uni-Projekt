@@ -37,6 +37,8 @@ Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js
 - **Flächen:** aus dem Aufmaß-Modul; solange keins vorliegt, angenommene Flächen (Beispiel 250 m² Fassade, 16 Fenster).
 - **Rechnung:** R der Bestandswand = 1/U − Rsi − Rse → erforderliche Dämmdicke, damit U ≤ 0,24 W/(m²K) nach **GModG Anlage 7** (bis 28.07.2026 GEG). WDVS mit Rse = 0,04; hinterlüftete Vorhangfassade mit Rse = Rsi = 0,13 und ΔU für die Unterkonstruktion (Holz 0,02 / Alu 0,04).
 - **Dämmstoffe (laut Projektkonzept):** Mineralwolle, EPS, Holzfaser in beiden Systemen. Ausgegeben werden die rechnerische Dicke (genau U = 0,24, für den Vergleich „gleiche Dämmwirkung“) und die Ausführungsdicke (auf 2 cm aufgerundet). Hinweise zu Brandschutz (brennbare Dämmung in VHF, Brandriegel bei EPS-WDVS).
+- **Brandschutz:** Gebäudeklasse aus der Geschosszahl (oder manuell); unzulässige Dämmvarianten werden ausgegraut (GK 4–5: hinterlüftet nur nichtbrennbar, WDVS mind. schwerentflammbar, EPS mit Brandriegeln; Hochhaus: nur nichtbrennbar).
+- **Zusammenfassung:** kompakte Übersicht unter dem Tool (Kennzahlen, zulässige Dämmvarianten und Fenster, Hinweise), als Text kopierbar.
 - **Mögliche Fenster:** alle 6 Optionen (PVC/Holz/Holz-Alu × 2-/3-fach) mit Uw nach DIN EN ISO 10077-1 aus den Fenstermaßen und dem Rahmenanteil, geprüft gegen Uw ≤ 1,3.
 - **Schnittstellen:** Eingang Ereignis `flaechen` (vom Aufmaß), Ausgang Ereignis `sanierung` bzw. `window.SanierungUI.ergebnis()` (für Kosten/CO₂). Felder und Einheiten: `docs/schnittstelle-sanierung.md`.
 - **Annahmen:** Alle λ-, Ug-, Uf-, ψ- und ΔU-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar.

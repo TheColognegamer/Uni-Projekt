@@ -70,6 +70,9 @@
     <div class="row inline">Wandstärke <input id="sDicke" type="number" step="1" min="10" max="100" value="36"> cm
       <span class="small">an Fenster- oder Türlaibung messen, inkl. Putz</span></div>
     <p class="small" id="sBestand"></p>
+    <div class="row inline">Geschosse über Gelände (inkl. EG) <input id="sGeschosse" type="number" step="1" min="1" max="40" value="4"></div>
+    <div class="row inline">Gebäudeklasse <select id="sGk"><option value="auto">automatisch aus Geschossen</option></select></div>
+    <p class="small" id="sGkInfo"></p>
 
     <h2>5 · Flächen <span id="flQuelle" class="tag"></span></h2>
     <div class="row inline">Fassade gesamt <input id="aFassade" type="number" step="1" min="1" value="250"> m²</div>
@@ -99,6 +102,7 @@
     <button id="export" type="button">Messung als JSON exportieren</button>
   </aside>
 </main>
+<section id="zusammenfassung" class="zf" aria-live="polite"></section>
 <script src="src/geometry.js"></script>
 <script src="src/bauphysik.js"></script>
 <script src="src/sanierung-ui.js"></script>

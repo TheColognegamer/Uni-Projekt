@@ -32,9 +32,11 @@ window.addEventListener('sanierung', (e) => {
   r.flaechen                    // { quelle: 'aufmass' | 'annahme', wandNetto_m2, fenster:[{b,h}] }
   r.bezugsflaeche_m2            // Wand netto in m²
   r.wand                        // { baujahr, baualtersklasse ('bis 1918' … 'ab 2002'), konstruktion, gesamtDicke_m, u, quelle }  U-Wert Bestand (amtl. Pauschalwert)
+  r.gebaeude                    // { geschosse, hoeheOberstesGeschoss_m, gebaeudeklasse: 'gk13'|'gk45'|'hochhaus', manuell }
   r.unterkonstruktion_vhf       // 'holz' | 'alu'
   r.varianten                   // 6 Einträge: 2 Systeme × 3 Dämmstoffe, siehe unten
   r.fenster                     // mögliche Fenster, siehe unten (null, wenn keine Fenster)
+  r.zusammenfassungText         // kompakte Zusammenfassung als Text (z. B. für Bericht/Export)
   r.fehler                      // Liste von Fehlermeldungen (leer = alles gültig)
 });
 ```
@@ -54,7 +56,8 @@ window.addEventListener('sanierung', (e) => {
 | `uNeu` | W/(m²K) | U-Wert nach Sanierung (Ausführungsdicke) |
 | `uMax`, `erfuellt` | – | Höchstwert GModG Anlage 7 (0,24) und ob eingehalten |
 | `deltaU` | W/(m²K) | Wärmebrückenzuschlag (WDVS 0, VHF Holz 0,02 / Alu 0,04) |
-| `warnungen` | – | Texte, z. B. Brandschutz |
+| `brandschutz` | – | `{ zulaessig, grund, auflage }` je nach Gebäudeklasse → **Kosten/CO₂ nur für `zulaessig === true` ausweisen**; `auflage` z. B. Brandriegel bei EPS (Kostenposition!) |
+| `warnungen` | – | weitere Hinweise (z. B. Kerndämmung bei zweischaligen Wänden) |
 
 ### `fenster`, die möglichen Fenster
 

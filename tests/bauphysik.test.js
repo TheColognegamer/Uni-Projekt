@@ -42,7 +42,16 @@ near(v.dTheoretisch, 0.14685, 1e-4, 'VHF Alu theoretisch');
 near(v.d, 0.16, 1e-9, 'VHF Alu gerundet');
 near(v.uNeu, 0.2260, 1e-3, 'U neu VHF Alu');
 assert.ok(B.daemmdicke(wl, 'vhf', 'mw', { uk: 'holz' }).d <= v.d, 'Holz-UK braucht nicht mehr als Alu');
-assert.ok(B.daemmdicke(wl, 'vhf', 'eps').warnungen.some((t) => /nichtbrennbar/.test(t)), 'EPS in VHF warnt');
+// Brandschutz: Gebäudeklasse aus Geschossen (EG 0,6 m + 2,8 m je Geschoss)
+assert.strictEqual(B.gebaeudeklasse(3).key, 'gk13', '3 Geschosse: 6,2 m');
+assert.strictEqual(B.gebaeudeklasse(4).key, 'gk45', '4 Geschosse: 9,0 m');
+assert.strictEqual(B.gebaeudeklasse(8).key, 'gk45', '8 Geschosse: 20,2 m');
+assert.strictEqual(B.gebaeudeklasse(9).key, 'hochhaus', '9 Geschosse: 23,0 m');
+const zul = (gk) => B.variantenWand(wl, { gk }).filter((x) => x.brandschutz.zulaessig).map((x) => x.system + '/' + x.daemmstoff);
+assert.deepStrictEqual(zul('gk13').length, 6, 'GK 1–3: alles zulässig');
+assert.deepStrictEqual(zul('gk45'), ['wdvs/mw', 'wdvs/eps', 'vhf/mw'], 'GK 4–5: MW, EPS-WDVS, VHF nur MW');
+assert.deepStrictEqual(zul('hochhaus'), ['wdvs/mw', 'vhf/mw'], 'Hochhaus: nur nichtbrennbar');
+assert.ok(/Brandriegel/.test(B.brandschutz('wdvs', 'eps', 'gk45').auflage), 'EPS GK 4–5 mit Brandriegel');
 
 // 4) Alle 6 Varianten erfüllen nach Rundung U <= 0,24; Dicke proportional zu λ
 const varianten = B.variantenWand(wl, { vhf: { uk: 'holz' } });

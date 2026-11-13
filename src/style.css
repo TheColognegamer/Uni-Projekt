@@ -35,3 +35,14 @@ select{font:inherit;padding:4px;border:1px solid var(--line);border-radius:6px;b
 .choices small{display:block;color:var(--muted)}
 .tag{font-size:11px;text-transform:none;letter-spacing:0;padding:1px 6px;border-radius:6px;background:var(--line);color:var(--fg);font-weight:400}
 #sVarianten td,#fRes td{padding-right:4px;white-space:nowrap}#sVarianten td:first-child,#fRes td:first-child{white-space:normal}
+tr.unzul td{color:var(--muted);text-decoration:line-through}tr.unzul td:last-child,tr.unzul td:first-child{text-decoration:none}
+.zf{max-width:1400px;margin:0 auto 24px;padding:0 16px}
+.zf .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.zf h2{margin:0 0 4px;font-size:18px;text-transform:none;letter-spacing:0;color:var(--fg)}
+.zf h3{margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.zf .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.zf .kpi{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.zf .kpi b{display:block;font-size:17px}.zf .kpi span{font-size:12px;color:var(--muted)}
+.zf table td{font-size:14px;padding:5px 6px 5px 0}.zf table td:nth-child(n+2){text-align:left}
+.zf .grid2{display:grid;grid-template-columns:3fr 2fr;gap:18px}@media(max-width:900px){.zf .grid2{grid-template-columns:1fr}}
+.zf ul{list-style:disc;padding-left:18px;font-size:13px}.zf .fuss{font-size:12px;color:var(--muted);margin-top:12px}
+.zf .kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}

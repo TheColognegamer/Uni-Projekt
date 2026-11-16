@@ -18,7 +18,7 @@ Rechts erscheinen Brutto-/Netto-Fläche und Fensteranteil; unter „Evaluation�
 Der Button „Automatisch erkennen (KI)“ schickt das Foto an einen kleinen Server (`server.mjs`), der ein Vision-Modell der Claude API aufruft und Umrisse für Wand, Fenster und Türen zurückgibt. Der Schlüssel bleibt serverseitig.
 ```bash
 npm install
-export ANTHROPIC_API_KEY="sk-ant-..."   # nie ins Repo committen
+cp .env.example .env                    # dann in .env den Key eintragen (wird nie committet)
 npm start                               # http://localhost:8000
 npm run start:mock                      # nur Oberfläche testen, feste Beispielwerte, KEINE echte Erkennung
 ```

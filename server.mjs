@@ -10,6 +10,13 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod/v4';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
+// Optional: Werte aus einer lokalen .env-Datei laden (nicht im Repo, siehe .gitignore). Bereits gesetzte Umgebungsvariablen haben Vorrang.
+try {
+  for (const line of fs.readFileSync(path.join(root, '.env'), 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*?)\s*$/i);
+    if (m && !line.trim().startsWith('#') && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(["'])(.*)\1$/, '$2');
+  }
+} catch { /* keine .env vorhanden: ok */ }
 const PORT = Number(process.env.PORT || 8000);
 const MOCK = process.env.MOCK === '1';
 const MODEL = process.env.DETECT_MODEL || 'claude-opus-5-5';
@@ -115,5 +122,6 @@ http.createServer(async (req, res) => {
   console.log(`App: http://localhost:${PORT}  (${MOCK ? 'ATTRAPPE' : 'Modell ' + MODEL})`);
   for (const list of Object.values(os.networkInterfaces()))
     for (const i of list || []) if (i.family === 'IPv4' && !i.internal) console.log(`Am Handy (gleiches WLAN): http://${i.address}:${PORT}`);
+  if (!MOCK) console.log(process.env.ANTHROPIC_API_KEY ? 'API-Key: gesetzt' : 'API-Key: FEHLT (siehe README: .env anlegen)');
   if (!ACCESS_CODE) console.log('Hinweis: ohne ACCESS_CODE kann jeder im Netz die KI-Funktion nutzen (Kosten!).');
 });

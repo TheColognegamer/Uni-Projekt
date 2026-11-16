@@ -66,3 +66,11 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Fachliche Auffälligkeiten:** Der Auto-Maßstab nutzt eine Referenzstrecke ohne Perspektivkorrektur und bei der Tür eine **Annahme**; die App warnt dazu. In der Attrappe ergibt das 57,7 m² statt der 61,6 m² mit Referenzrechteck (Differenz ~6 %), also genau der Effekt, den die Annahme erwarten lässt.
 - **Prüfung:** Test im emulierten Handy-Format (390 px, Touch) mit der Attrappe, Zugangscode (401/401/200) geprüft. **Nicht getestet:** echte Handykamera, echter Modellaufruf, Hosting.
 - **Dateien:** `index.html`, `src/app.js`, `server.mjs`, `tests/auto-mock.mjs`.
+
+### P-05 · Fehler beim ersten echten Lauf: zod-Version · 16.11.2026 · Nicolai
+- **Symptom (vom Nutzer gemeldet):** Beim Klick auf „Automatisch erkennen (KI)“ erschien „Cannot read properties of undefined (reading 'def')“.
+- **Ursache:** Der Helfer `zodOutputFormat` des Anthropic-SDK erwartet Zod-4-Schemas. `import { z } from 'zod'` liefert bei zod 3.25 die alte Version, der Fehler trat im Server auf, noch vor dem Modellaufruf. Reproduziert mit einem Minimalbeispiel.
+- **Warum die Tests es übersahen:** Die Attrappe (`MOCK=1`) umgeht den Modellpfad komplett. Das war im Log (P-03) als „nicht getestet“ vermerkt.
+- **Korrektur:** Import auf `zod/v4`; das Schema wird jetzt beim Serverstart gebaut, damit solche Fehler sofort auftreten.
+- **Prüfung:** Schema-Erzeugung nach der Korrektur ohne Fehler; bestehende Tests grün. Der Modellaufruf selbst ist weiterhin **nicht** von der KI getestet, der Nutzer prüft ihn mit eigenem Schlüssel.
+- **Lehre für die Reflexion:** Tests mit Attrappen decken die Integrationsstelle zum externen Dienst nicht ab; echte Läufe finden solche Fehler.

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8000);
@@ -30,6 +30,9 @@ const Detection = z.object({
   doors: z.array(Poly),
   notes: z.string(),
 });
+
+// Schema beim Start bauen: Fehler (z. B. falsche zod-Version) fallen sofort auf, nicht erst beim ersten Foto.
+const DETECTION_FORMAT = zodOutputFormat(Detection);
 
 const SYSTEM = `Du unterstützt ein Aufmaß-Werkzeug für Fassaden. Du bekommst ein Foto eines Gebäudes und markierst Flächen als Polygone.
 Koordinaten sind Pixel des gelieferten Bildes, Ursprung oben links, x nach rechts, y nach unten.
@@ -75,7 +78,7 @@ async function detect({ image, mediaType, width, height }) {
         { type: 'text', text: `Das Bild ist ${width} x ${height} Pixel groß. Markiere Wandfläche, Fenster und Türen.` },
       ],
     }],
-    output_config: { effort: 'high', format: zodOutputFormat(Detection) },
+    output_config: { effort: 'high', format: DETECTION_FORMAT },
   });
   if (response.stop_reason === 'refusal') throw Object.assign(new Error('Das Modell hat die Anfrage abgelehnt.'), { status: 422 });
   if (!response.parsed_output) throw Object.assign(new Error('Antwort des Modells nicht lesbar (stop_reason: ' + response.stop_reason + ').'), { status: 502 });

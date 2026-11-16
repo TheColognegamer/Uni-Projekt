@@ -122,6 +122,17 @@ http.createServer(async (req, res) => {
   console.log(`App: http://localhost:${PORT}  (${MOCK ? 'ATTRAPPE' : 'Modell ' + MODEL})`);
   for (const list of Object.values(os.networkInterfaces()))
     for (const i of list || []) if (i.family === 'IPv4' && !i.internal) console.log(`Am Handy (gleiches WLAN): http://${i.address}:${PORT}`);
-  if (!MOCK) console.log(process.env.ANTHROPIC_API_KEY ? 'API-Key: gesetzt' : 'API-Key: FEHLT (siehe README: .env anlegen)');
+  if (!MOCK) {
+    const k = process.env.ANTHROPIC_API_KEY || '';
+    if (!k) console.log('API-Key: FEHLT (siehe README: .env anlegen)');
+    else {
+      console.log(`API-Key: gesetzt, beginnt mit "${k.slice(0, 7)}", Länge ${k.length}`);
+      if (!k.startsWith('sk-ant-')) console.log('  WARNUNG: Ein Anthropic-Key beginnt mit "sk-ant-". Das hier sieht nicht danach aus.');
+      if (/\s|["']/.test(k)) console.log('  WARNUNG: Der Key enthält Leerzeichen oder Anführungszeichen.');
+      if (k.length < 40) console.log('  WARNUNG: Der Key wirkt zu kurz, vermutlich unvollständig kopiert.');
+    }
+    if (process.env.ANTHROPIC_BASE_URL) console.log('  Hinweis: ANTHROPIC_BASE_URL ist gesetzt und leitet die Anfragen um.');
+    if (process.env.ANTHROPIC_AUTH_TOKEN) console.log('  Hinweis: ANTHROPIC_AUTH_TOKEN ist gesetzt.');
+  }
   if (!ACCESS_CODE) console.log('Hinweis: ohne ACCESS_CODE kann jeder im Netz die KI-Funktion nutzen (Kosten!).');
 });

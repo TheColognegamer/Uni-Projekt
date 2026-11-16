@@ -22,7 +22,7 @@
     zeit: 'beide',             // '30' | '50' | 'beide'
     dickeModus: 'exakt',       // 'exakt' = gleiche Dämmwirkung (U = 0,24), 'platte' = Ausführungsdicke
     fassade: 'wdvs-mw-mineralisch',
-    fenster: 'fenster-alu-zweifach',
+    fenster: 'fenster-holzalu-zweifach',
     a: { system: 'wdvs', daemmstoff: 'eps', putz: 'mineralisch', uk: 'holz', bekleidung: 'holz', rahmen: 'pvc', verglasung: 'dreifach' },
     b: { system: 'vhf', daemmstoff: 'mw', putz: 'mineralisch', uk: 'holz', bekleidung: 'holz', rahmen: 'holz', verglasung: 'dreifach' },
   };
@@ -361,7 +361,7 @@
     const t = [`Rahmenlängen und Glasanteil aus ${basis.geo.quelle === 'aufmass' ? basis.geo.anzahl + ' Fenstern des Aufmaßes' : 'dem Normfenster 1,23 × 1,48 m'} (Blendrahmen ${fmt(basis.geo.blendrahmen, 2)} m/m², Flügel ${fmt(basis.geo.fluegelrahmen, 2)} m/m², Glas ${fmt(basis.geo.glas * 100, 0)} %).`];
     const nicht = fe.filter((v) => v.uw && !v.uw.erfuellt);
     if (nicht.length) t.push(`✗ blass = Uw > 1,3 W/(m²K), nach GModG nicht zulässig: ${nicht.map((v) => v.name.replace('Fenster ', '')).join(', ')}.`);
-    t.push('Aluminiumfenster: Uw wird im Modul Sanierung (noch) nicht berechnet. Holz-Alu-Fenster aus dem Modul Sanierung haben noch keinen LCA-Datensatz.');
+    t.push('Holz-Alu: kein generischer ÖKOBAUDAT-Datensatz; angenähert als Holzrahmen + Alu-Deckschale (0,5 kg/m, Annahme).');
     return t.map(esc).join(' ');
   }
 

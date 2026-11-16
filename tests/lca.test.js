@@ -66,27 +66,33 @@ fv.forEach((v) => {
 const SOLL_FENSTER = {
   'Fenster Holz / 2-fach-Verglasung': [56.37596361, 112.75192722],
   'Fenster Holz / 3-fach-Verglasung': [72.60288061, 145.20576122],
-  'Fenster Aluminium / 2-fach-Verglasung': [135.40868928, 170.87620452],
-  'Fenster Aluminium / 3-fach-Verglasung': [151.63560628, 203.33003852],
   'Fenster PVC / 2-fach-Verglasung': [104.1537809, 208.30756181],
   'Fenster PVC / 3-fach-Verglasung': [120.3806979, 240.76139581],
 };
+// Holz-Alu (wie Modul Sanierung) steht nicht in der Excel: Handrechnung aus Holzfenster + Alu-Deckschale.
+// Holzrahmen: Nutzungsdauer 50 statt 40 a -> bei 50 a kein Austausch; Deckschale 0,5 kg/m Rahmen, Aluprofil.
+const DS = require('../src/lca-data.js').DATENSAETZE;
+const holzRahmen = fg.blendrahmen * (DS.HBR.a1a3 + DS.HBR.c3) + fg.fluegelrahmen * (DS.HFR.a1a3 + DS.HFR.c3);
+const schale = (fg.blendrahmen + fg.fluegelrahmen) * 0.5 * DS.ALUP.a1a3;
+for (const [vg, holz] of [['2-fach', SOLL_FENSTER['Fenster Holz / 2-fach-Verglasung']], ['3-fach', SOLL_FENSTER['Fenster Holz / 3-fach-Verglasung']]]) {
+  SOLL_FENSTER[`Fenster Holz-Alu / ${vg}-Verglasung`] = [holz[0] + schale, holz[1] - holzRahmen + schale];
+}
 const fe = L.fensterVarianten();
 assert.strictEqual(fe.length, 6, '6 Fenstervarianten');
 fe.forEach((v) => {
   const soll = SOLL_FENSTER[v.name];
-  assert.ok(soll, 'Fenstervariante fehlt in Excel: ' + v.name);
+  assert.ok(soll, 'Fenstervariante fehlt: ' + v.name);
   const r = L.jeZeitraum('fenster', v.konfig);
   near(r[30].total, soll[0], 1e-6, v.name + ' 30 a');
   near(r[50].total, soll[1], 1e-6, v.name + ' 50 a');
 });
 
-// 5) Gesamtfassade (Dropdown-Beispiel aus der Excel): 250 m² Wand, 40 m² Fenster
-const g = L.gesamt({ system: 'wdvs', konfig: { daemmstoff: 'mw', putz: 'mineralisch' } }, { konfig: { rahmen: 'alu', verglasung: 'zweifach' } }, { wandNetto: 250, fenster: 40 });
+// 5) Gesamtfassade (Dropdown-Beispiel der Excel): 250 m² Wand + 40 m² Fenster.
+// Opake Wand weiter gegen die Excel; Fenster jetzt Holz-Alu statt Alu (Excel-Wert Alu: 5416,35 kg bei 30 a).
+const g = L.gesamt({ system: 'wdvs', konfig: { daemmstoff: 'mw', putz: 'mineralisch' } }, { konfig: { rahmen: 'holzalu', verglasung: 'zweifach' } }, { wandNetto: 250, fenster: 40 });
 near(g[30].opak, 7319.533635, 1e-5, 'Opak 30 a');
-near(g[30].fenster, 5416.347571, 1e-5, 'Fenster 30 a');
-near(g[30].summe, 12735.881206, 1e-5, 'Summe 30 a');
-near(g[50].summe, 21474.115451, 1e-5, 'Summe 50 a');
+near(g[30].fenster, 40 * SOLL_FENSTER['Fenster Holz-Alu / 2-fach-Verglasung'][0], 1e-6, 'Fenster 30 a');
+near(g[50].summe, g[50].opak + 40 * SOLL_FENSTER['Fenster Holz-Alu / 2-fach-Verglasung'][1], 1e-6, 'Summe 50 a');
 
 // 6) Dicken aus der U-Wert-Berechnung (Modul Sanierung) gehen ein: doppelte Dicke -> doppelte Dämm-Menge
 const ctx = { dicke: (s) => (s.code === 'W-D-EPS' ? 0.32 : undefined) };
@@ -107,4 +113,4 @@ near(fa.blendrahmen, (2 * 2 * 2.6) / 3.36, 1e-12, 'Blendrahmen aus Aufmaß');
 near(fa.beschlag, 2 / 3.36, 1e-12, 'Beschläge aus Aufmaß');
 assert.throws(() => L.aufbau('wdvs', { daemmstoff: 'kork', putz: 'mineralisch' }), /kork/);
 
-console.log('lca.test.js: alle Prüfungen bestanden (' + (fv.length + fe.length) + ' Varianten gegen Excel)');
+console.log('lca.test.js: alle Prüfungen bestanden (' + (fv.length + fe.length) + ' Varianten: ' + (fv.length + fe.length - 2) + ' gegen Excel, 2 Holz-Alu gegen Handrechnung)');

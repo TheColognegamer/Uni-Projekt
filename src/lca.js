@@ -64,6 +64,7 @@
       case 'flaeche': grund = 1; break;
       case 'blendrahmen': grund = fg.blendrahmen; break;
       case 'fluegelrahmen': grund = fg.fluegelrahmen; break;
+      case 'deckschale': grund = (fg.blendrahmen + fg.fluegelrahmen) * s.menge; break; // kg je m² Fenster
       case 'glas': grund = fg.glas; break;
       case 'beschlag': grund = fg.beschlag; break;
       default: throw new Error('Unbekannte Mengenart ' + s.art);
@@ -114,7 +115,7 @@
     putz: { mineralisch: 'mineralischer Putz', silikat: 'Silikatputz' },
     uk: { holz: 'Holz-UK', alu: 'Alu-UK' },
     bekleidung: { holz: 'Holzbekleidung', alu: 'Metallbekleidung' },
-    rahmen: { holz: 'Holz', alu: 'Aluminium', pvc: 'PVC' },
+    rahmen: { holz: 'Holz', holzalu: 'Holz-Alu', pvc: 'PVC' },
     verglasung: { zweifach: '2-fach', dreifach: '3-fach' },
   };
 
@@ -141,7 +142,7 @@
   /** Alle 6 Fenstervarianten (3 Rahmen × 2 Verglasungen). */
   function fensterVarianten() {
     const out = [];
-    for (const rahmen of ['holz', 'alu', 'pvc']) for (const verglasung of ['zweifach', 'dreifach']) {
+    for (const rahmen of ['holz', 'holzalu', 'pvc']) for (const verglasung of ['zweifach', 'dreifach']) {
       const k = { rahmen, verglasung }; out.push({ id: fensterId(k), system: 'fenster', konfig: k, name: fensterName(k) });
     }
     return out;

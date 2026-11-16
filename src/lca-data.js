@@ -100,8 +100,10 @@
     fenster: [
       S({ code: 'F-R-HOLZ-B', name: 'Rahmen Holz: Blendrahmen', wahl: 'holz', ds: 'HBR', art: 'blendrahmen', verschnitt: 0, rsl: 40, hinweis: 'Rahmenlänge aus Fenstergeometrie' }),
       S({ code: 'F-R-HOLZ-F', name: 'Rahmen Holz: Flügelrahmen', wahl: 'holz', ds: 'HFR', art: 'fluegelrahmen', verschnitt: 0, rsl: 40, hinweis: 'Rahmenlänge aus Fenstergeometrie' }),
-      S({ code: 'F-R-ALU-B', name: 'Rahmen Alu: Blendrahmen', wahl: 'alu', ds: 'ABR', art: 'blendrahmen', verschnitt: 0, rsl: 50, hinweis: 'Rahmenlänge aus Fenstergeometrie' }),
-      S({ code: 'F-R-ALU-F', name: 'Rahmen Alu: Flügelrahmen', wahl: 'alu', ds: 'AFR', art: 'fluegelrahmen', verschnitt: 0, rsl: 50, hinweis: 'Rahmenlänge aus Fenstergeometrie' }),
+      // Holz-Alu: kein generischer ÖKOBAUDAT-Datensatz → Proxy aus Holzrahmen + Alu-Deckschale (wie Modul Sanierung: holzalu)
+      S({ code: 'F-R-HA-B', name: 'Rahmen Holz-Alu: Blendrahmen (Holz)', wahl: 'holzalu', ds: 'HBR', art: 'blendrahmen', verschnitt: 0, rsl: 50, hinweis: 'Proxy: Holz-Blendrahmen; Nutzungsdauer 50 a (Holz durch Alu-Schale geschützt, Annahme – BBSR prüfen)' }),
+      S({ code: 'F-R-HA-F', name: 'Rahmen Holz-Alu: Flügelrahmen (Holz)', wahl: 'holzalu', ds: 'HFR', art: 'fluegelrahmen', verschnitt: 0, rsl: 50, hinweis: 'Proxy: Holz-Flügelrahmen; Nutzungsdauer 50 a (Annahme – BBSR prüfen)' }),
+      S({ code: 'F-R-HA-D', name: 'Rahmen Holz-Alu: Alu-Deckschale', wahl: 'holzalu', ds: 'ALUP', art: 'deckschale', menge: 0.5, verschnitt: 0, rsl: 50, hinweis: 'Annahme: 0,5 kg Aluminium je m Rahmen (Blend- + Flügelrahmen)' }),
       S({ code: 'F-R-PVC-B', name: 'Rahmen PVC: Blendrahmen', wahl: 'pvc', ds: 'PBR', art: 'blendrahmen', verschnitt: 0, rsl: 40, hinweis: 'Rahmenlänge aus Fenstergeometrie' }),
       S({ code: 'F-R-PVC-F', name: 'Rahmen PVC: Flügelrahmen', wahl: 'pvc', ds: 'PFR', art: 'fluegelrahmen', verschnitt: 0, rsl: 40, hinweis: 'Rahmenlänge aus Fenstergeometrie' }),
       S({ code: 'F-G-2', name: 'Verglasung: 2-fach', wahl: 'zweifach', ds: 'G2', art: 'glas', verschnitt: 0, rsl: 30, hinweis: 'Glasanteil = 1 − Rahmenanteil' }),
@@ -160,7 +162,7 @@
     },
     rahmen: {
       holz: { name: 'Holz', quelle: 'entwurf', vorteile: ['Niedriges GWP, nachwachsender Rohstoff'], nachteile: ['Pflegeaufwand (Anstrich)'] },
-      alu: { name: 'Aluminium', quelle: 'entwurf', vorteile: ['Langlebig, wartungsarm, schlanke Profile'], nachteile: ['Hohes GWP in der Herstellung'] },
+      holzalu: { name: 'Holz-Alu', quelle: 'entwurf', vorteile: ['Holz innen, witterungsfeste Alu-Schale außen: langlebig, wenig Pflege'], nachteile: ['Höheres GWP als reines Holz (Aluminium)', 'Kein eigener ÖKOBAUDAT-Datensatz (Proxy) → GWP unsicher'] },
       pvc: { name: 'PVC', quelle: 'entwurf', vorteile: ['Günstig und pflegeleicht'], nachteile: ['Fossiler Rohstoff, höheres GWP als Holz'] },
     },
     verglasung: {

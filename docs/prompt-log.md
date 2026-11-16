@@ -11,6 +11,8 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 | Tool | Modell / Version | Zeitraum | Nutzung |
 |---|---|---|---|
 | Claude Code (Web/Cloud-Sitzung) | *bitte aus der Sitzung eintragen (Modellname/Version)* | ab 09.11.2026 | Prototyp-Entwicklung |
+| Claude (claude.ai, Projekt „Life Cycle Engineering“) | *bitte aus der Sitzung eintragen* | 15.11.2026 | LCA-Datengrundlage als Excel (Iris) |
+| Claude Code (Desktop-App, lokal) | Claude Opus 5.5 | ab 16.11.2026 | LCA-Modul im Branch `LCA-Berechnung` (Iris) |
 
 ## Eintragsvorlage
 
@@ -116,3 +118,17 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **KI-Ergebnis:** Button „PDF herunterladen“ in der Zusammenfassung. Eigener, abhängigkeitsfreier PDF-Erzeuger (`src/pdf.js`: Helvetica/WinAnsi, Text, Linien, Flächen, Zeilenumbruch) und Berichtsaufbau (`src/pdf-bericht.js`): Kennzahlen, Gebäude/Bestand, Anforderungen, alle 6 Dämmvarianten mit Brandschutz-Status, Fenster, Hinweise, Grundlagen/Annahmen, Fußzeile mit Seitenzahlen. Auf claude.ai über die Download-Funktion der Plattform, sonst normaler Browser-Download.
 - **Entscheidung der KI:** keine externe Bibliothek (z. B. jsPDF), damit das Tool weiter ohne Build und offline läuft. Folge: Sonderzeichen außerhalb WinAnsi werden ersetzt (≤ → <=, λ → Lambda, CO₂ → CO2).
 - **Prüfung:** Unit-Test (Zeichensatz, xref-Offsets, Inhalte), `qpdf --check`, Browser-Download-Test, Sichtprüfung mit PDFium (Chrome/Edge-Engine). Auffälligkeit: Die Vorschau mit Poppler zeigte „²“ nicht an (Ersatzschrift); in PDFium korrekt.
+
+### P-12 · LCA-Datengrundlage als Excel · 15.11.2026 · Iris
+- **Ziel:** Schichtaufbauten WDVS, VHF und Fenster mit ÖKOBAUDAT-Werten (EN 15804+A2) und Formeln für GWP-total über 30 und 50 Jahre als Grundlage für die Programmierung.
+- **Prompt (Kurzfassung):** „Erstelle eine Exceltabelle, wo die Materialien aus der Folie (Fassadenpaket) mit offiziellen Werten aus der ÖKOBAUDAT ausgefüllt sind … Auswertung GWP-total nach DIN EN 15978 / DIN EN 15804+A2 (A1–A3 + B4 + C3 + C4) … Dicke variierbar … alle Schichten auf 1 m² Wandfläche umrechnen … für 30 und 50 Jahre … Formeln in Excel hinterlegen.“
+- **KI-Ergebnis:** `LCA_Fassadensanierung_WDVS_VHF.xlsx` mit 24 Datensätzen (ÖKOBAUDAT 2024-II, UUID + Link), Umrechnung auf 1 m², Austauschzyklen, 18 Fassaden- und 6 Fenstervarianten, Dropdown für die Gesamtfassade, Diagramm, Plausibilisierung gegen Systemdatensätze.
+- **Auffälligkeiten (von der KI selbst gemeldet):** Silikatputz und WDVS-Dübel nur als Proxy-Datensätze; Nutzungsdauern aus dem Gedächtnis „in Anlehnung an BBSR“, nicht nachgeschlagen; Mengen der Nebenschichten sind Annahmen; Silikat-Aufbau +42 % gegenüber dem Systemdatensatz.
+- **Vom Team zu prüfen:** Nutzungsdauern gegen die BBSR-Tabelle, Mengenannahmen, Gültigkeit der generischen Datensätze (bis 2026).
+
+### P-13 · LCA-Reiter in der Web-App · 16.11.2026 · Iris
+- **Ziel:** Die Excel-Rechnung in die Web-App übertragen (Branch `LCA-Berechnung`), mit den Dämmdicken aus dem Modul Sanierung, damit alle Varianten denselben U-Wert nach GModG haben.
+- **Prompt (Kurzfassung):** „LCA soll ein eigener Reiter sein. Das Balkendiagramm aus der Excel behalten … Dropdown, das die kg CO₂-Äq. in 30 und 50 Jahren ausgibt … zwei Fassadensysteme konfigurieren und vergleichen inkl. Balkengraph und Vor-/Nachteile … aufklappbare Tabelle Annahmen … Skizze für den Wandaufbau … Dicken aus dem Branch claude/arbeitsbereich, alle Konfigurationen mit gleichem U-Wert (GModG) … Export als PDF.“
+- **KI-Ergebnis:** `src/lca-data.js` (alle Werte und Annahmen aus der Excel an einer Stelle), `src/lca.js` (Rechenkern), `src/lca-ui.js` (Reiter mit Diagramm aller 18 Varianten, Fensterdiagramm, Dropdown Gesamtfassade, Vergleich A/B mit Wandskizze und Vor-/Nachteilen, Umschalter 30/50/beide Jahre, aufklappbare Annahmen), `src/lca-pdf.js` (PDF-Bericht mit MiniPDF aus P-11), `tests/lca.test.js`. Der Branch von Moritz (`claude/arbeitsbereich`) wurde dafür in `LCA-Berechnung` übernommen; Dicken kommen aus `bauphysik.js` (exakte Dicke für U = 0,24, wahlweise Plattendicke), unzulässige Varianten (Brandschutz) werden blass dargestellt.
+- **Prüfung:** Unit-Test: alle 24 Varianten je m² und die Gesamtfassade (12.736 / 21.474 kg) stimmen mit der Excel überein (Startdicken 160/180 mm); Test, dass die Dicken aus `bauphysik.js` genau U = 0,24 ergeben. Browser-Test: Reiterwechsel, Dropdowns, A/B-Konfiguration, Gebäudeklasse 1–3 vs. 4–5, Handy-Breite ohne horizontales Scrollen, PDF wird erzeugt (4 Seiten).
+- **Unsicher / vom Team zu prüfen:** Vor-/Nachteile für Putz, Unterkonstruktion, Bekleidung und Fenster sind Textvorschläge der KI (in der App mit * markiert). Holz-Alu-Fenster aus dem Modul Sanierung haben noch keinen LCA-Datensatz; Uw für Aluminiumfenster wird dort nicht berechnet. Wandskizze ist schematisch (Klebemörtel, Luftschicht, Bekleidungsdicken als Annahme).

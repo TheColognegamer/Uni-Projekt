@@ -9,7 +9,12 @@
 <body>
 <header>
   <h1>Fassaden-Aufmaß per Foto <small>Prototyp · Gruppe 2 · Lebenszyklusvergleich von Fassadensystemen</small></h1>
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="tabAufmass" aria-selected="true" class="active">Aufmaß &amp; Sanierung</button>
+    <button type="button" role="tab" data-tab="tabLca" aria-selected="false">LCA · CO₂-Vergleich</button>
+  </nav>
 </header>
+<div id="tabAufmass" class="tab" role="tabpanel">
 <main>
   <section class="stage">
     <div class="toolbar">
@@ -103,11 +108,17 @@
   </aside>
 </main>
 <section id="zusammenfassung" class="zf" aria-live="polite"></section>
+</div>
+<div id="tabLca" class="tab lca" role="tabpanel" hidden></div>
 <script src="src/geometry.js"></script>
 <script src="src/bauphysik.js"></script>
 <script src="src/pdf.js"></script>
 <script src="src/pdf-bericht.js"></script>
 <script src="src/sanierung-ui.js"></script>
+<script src="src/lca-data.js"></script>
+<script src="src/lca.js"></script>
+<script src="src/lca-pdf.js"></script>
+<script src="src/lca-ui.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

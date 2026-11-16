@@ -44,10 +44,17 @@ Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js
 - **Schnittstellen:** Eingang Ereignis `flaechen` (vom Aufmaß), Ausgang Ereignis `sanierung` bzw. `window.SanierungUI.ergebnis()` (für Kosten/CO₂). Felder und Einheiten: `docs/schnittstelle-sanierung.md`.
 - **Annahmen:** Alle λ-, Ug-, Uf-, ψ- und ΔU-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar.
 
+## LCA · CO₂-Vergleich (Reiter „LCA“)
+GWP-total (A1–A3 + B4 + C3 + C4, DIN EN 15804+A2 / DIN EN 15978) aller Fassadenvarianten (6 WDVS, 12 VHF) und Fenster (6) für 30 und 50 Jahre, mit ÖKOBAUDAT-2024-II-Daten.
+Flächen und Dämmdicken (gleiches U = 0,24 nach GModG) kommen aus dem Modul Sanierung (Ereignis `sanierung`).
+Diagramm aller Varianten, Gesamtfassade per Dropdown, Vergleich zweier Konfigurationen mit Wandskizze und Vor-/Nachteilen, aufklappbare Annahmen, PDF-Export.
+**Annahmen ändern** (z. B. Nutzungsdauern nach BBSR): nur in `src/lca-data.js`, danach `node tests/lca.test.js`. Grundlage: `LCA_Fassadensanierung_WDVS_VHF.xlsx` (Iris).
+
 ## Tests
 ```bash
 node tests/bauphysik.test.js  # U-Werte und Dämmdicken gegen Handrechnung
 node tests/pdf.test.js        # PDF-Bericht (Aufbau, Zeichensatz, Querverweise)
+node tests/lca.test.js        # LCA-Rechnung gegen die Excel (alle 24 Varianten, 30/50 Jahre)
 node tests/geometry.test.js   # Geometrie-Kern
 node tests/e2e.mjs            # Browser-Smoke-Test (benötigt Playwright)
 node tests/auto-mock.mjs <foto.png>   # KI-Vorschlags-Strecke mit Attrappe

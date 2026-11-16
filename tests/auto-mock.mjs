@@ -11,10 +11,19 @@ await pg.goto('http://localhost:8123/');
 // Handy-Ablauf: ein Foto aufnehmen -> Erkennung + Auto-Maßstab laufen von selbst
 await pg.setInputFiles('#snap', photo); await pg.waitForFunction(() => document.querySelector('#hint').textContent.length > 25 && !document.querySelector('#hint').textContent.includes('analysiert'));
 const hint = (await pg.textContent('#hint')).trim();
+// Nachträglicher Wechsel auf Fassadenbreite (ohne neuen Erkennungsaufruf)
+let widthOk = true;
+if (mock) {
+  await pg.check('input[name=amode][value=width]'); await pg.fill('#autoW', '10'); await pg.waitForTimeout(200);
+  const fw = parseFloat((await pg.textContent('#rFacade')).replace(',', '.'));
+  widthOk = Math.abs(fw - 53.9) < 0.6; // 798 x 430 px bei 10 m Breite
+  console.log('Fassade bei 10 m Breite:', fw, widthOk ? 'ok' : 'ABWEICHUNG');
+  await pg.check('input[name=amode][value=door]'); await pg.waitForTimeout(200);
+}
 const t = async (id) => (await pg.textContent(id)).trim();
 const res = { hint, warn: await pg.$$eval('#warnings li', (l) => l.map((x) => x.textContent)), fassade: await t('#rFacade'), oeffnungen: await t('#rWin'), netto: await t('#rNet'), n: await pg.$$eval('#shapes li', (l) => l.length), errs };
 console.log(JSON.stringify(res, null, 1));
 if (shot) await pg.screenshot({ path: shot });
 await b.close(); srv.kill();
-const ok = mock ? (res.n === 7 && Math.abs(parseFloat(res.fassade.replace(',', '.')) - 57.7) < 0.6 && !errs.length) : /ANTHROPIC_API_KEY/.test(hint);
+const ok = mock ? (res.n === 7 && widthOk && Math.abs(parseFloat(res.fassade.replace(',', '.')) - 57.7) < 0.6 && !errs.length) : /ANTHROPIC_API_KEY/.test(hint);
 console.log(ok ? 'OK' : 'FEHLGESCHLAGEN'); process.exit(ok ? 0 : 1);

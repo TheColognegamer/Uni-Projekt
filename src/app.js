@@ -32,7 +32,7 @@
       c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
       S.img = c; S.name = name; S.iw = c.width; S.ih = c.height;
       cv.width = c.width; cv.height = c.height;
-      S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null; S.auto = null; S.autoScale = null;
+      S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null; S.auto = null; S.autoScale = null; S.det = null;
       S.t0 = Date.now(); S.t1 = null;
       clearInterval(S.tick); S.tick = setInterval(updateTimer, 500);
       setTool('calib'); recompute(); draw(); updateTimer();
@@ -240,7 +240,8 @@
   }
   // Referenzstrecke aus erkannten Umrissen: Oberkante der Fassade (Breite) bzw. Mittellinie der Tür (Höhe)
   const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-  function topEdge(pts) { const t = [...pts].sort((p, q) => p[1] - q[1]).slice(0, 2).sort((p, q) => p[0] - q[0]); return [t[0], t[1]]; }
+  // Fassadenbreite = waagerechte Ausdehnung des Umrisses (auch bei Giebel mit 5 Punkten), als Linie an der Unterkante
+  function widthLine(pts) { const xs = pts.map((q) => q[0]), y = Math.max(...pts.map((q) => q[1])); return [[Math.min(...xs), y], [Math.max(...xs), y]]; }
   function verticalMid(pts) {
     const byY = [...pts].sort((p, q) => p[1] - q[1]), n = Math.floor(byY.length / 2);
     const top = byY.slice(0, Math.max(2, n)).slice(0, 2), bot = byY.slice(-2);
@@ -250,9 +251,9 @@
     const mode = document.querySelector('input[name=amode]:checked').value;
     if (mode === 'none') return null;
     let p, len;
-    if (mode === 'width' && facade) { p = topEdge(facade.pts); len = +$('autoW').value; }
+    if (mode === 'width' && facade) { p = widthLine(facade.pts); len = +$('autoW').value; }
     else if (mode === 'door' && door) { p = verticalMid(door.pts); len = +$('autoD').value; }
-    else return 'Auto-Maßstab nicht möglich (' + (mode === 'door' ? 'keine Tür' : 'keine Fassade') + ' erkannt) – bitte Maßstab manuell setzen.';
+    else return mode === 'door' ? 'Keine Tür erkannt. Wähle „Fassadenbreite“, trage die gemessene Breite ein – der Maßstab wird dann sofort gesetzt.' : 'Keine Fassade erkannt – bitte Maßstab manuell setzen.';
     if (!(len > 0)) return 'Auto-Maßstab: ungültige Länge.';
     S.calib.type = 'line'; S.calib.pts = [p[0], p[1]]; $('calL').value = len;
     document.querySelector('input[name=ctype][value=line]').checked = true;
@@ -275,6 +276,7 @@
       setTool('facade'); // Werkzeug wählen, ohne den Maßstab zurückzusetzen
       S.shapes = shapes; S.active = null;
       S.auto = { shapes: JSON.parse(JSON.stringify(shapes)), mock: !!out.mock, model: out.model || null, dauer_s: (Date.now() - t) / 1000, notes: out.notes };
+      S.det = { facade: facades[0], door: doors[0] };
       const scaleMsg = applyAutoScale(facades[0], doors[0]);
       setHint((out.mock ? '[ATTRAPPE] ' : 'KI-Vorschlag: ') + shapes.length + ' Flächen. Bitte prüfen und korrigieren. ' + (scaleMsg || '') + ' ' + (out.notes || ''));
       recompute(); draw();
@@ -282,6 +284,15 @@
       setHint('Automatische Erkennung nicht möglich: ' + e.message);
     } finally { btns.forEach((b) => (b.disabled = false)); }
   }
+  // Auto-Maßstab nachträglich ändern (Modus oder Länge), ohne die KI erneut zu fragen
+  function reapplyScale() {
+    if (!S.det) return;
+    const f = S.shapes.includes(S.det.facade) ? S.det.facade : null, d = S.shapes.includes(S.det.door) ? S.det.door : null;
+    const msg = applyAutoScale(f, d);
+    setHint(msg || 'Maßstab neu gesetzt.'); recompute(); draw();
+  }
+  document.querySelectorAll('input[name=amode]').forEach((r) => r.addEventListener('change', reapplyScale));
+  ['autoW', 'autoD'].forEach((id) => $(id).addEventListener('input', reapplyScale));
   $('auto').addEventListener('click', runDetect);
   $('snap').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;

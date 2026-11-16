@@ -74,3 +74,10 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Korrektur:** Import auf `zod/v4`; das Schema wird jetzt beim Serverstart gebaut, damit solche Fehler sofort auftreten.
 - **Prüfung:** Schema-Erzeugung nach der Korrektur ohne Fehler; bestehende Tests grün. Der Modellaufruf selbst ist weiterhin **nicht** von der KI getestet, der Nutzer prüft ihn mit eigenem Schlüssel.
 - **Lehre für die Reflexion:** Tests mit Attrappen decken die Integrationsstelle zum externen Dienst nicht ab; echte Läufe finden solche Fehler.
+
+### P-06 · Erster echter Fassadenlauf (Giebelhaus) · 16.11.2026 · Nicolai
+- **Beobachtung (Screenshot des Nutzers):** Bei einem echten Foto (Giebelseite, unten Klinker, oben Holzverkleidung, Zaun und Bepflanzung vor der Wand) lieferte das Modell einen fünfeckigen Fassadenumriss (inkl. Giebel), fünf Fenster, ließ die Garage rechts weg und vermerkte, dass die Unterkante durch Zaun/Pfeiler/Bepflanzung verdeckt und geschätzt ist. Es erkannte keine Tür (auf dieser Seite keine vorhanden).
+- **Auffälligkeit der App:** Der Auto-Maßstab wurde nur direkt bei der Erkennung angewendet. Ohne Tür blieb das Ergebnis leer, und die Eingabe einer gemessenen Fassadenbreite wirkte erst bei einem neuen, kostenpflichtigen Erkennungsaufruf.
+- **Korrektur:** Der Maßstab lässt sich jetzt nachträglich ändern (Modus oder Länge), ohne neuen Aufruf. Die Fassadenbreite wird als waagerechte Ausdehnung des Umrisses bestimmt, damit sie auch bei Giebelfassaden stimmt (vorher: oberste zwei Punkte, bei Giebel falsch).
+- **Prüfung:** Test mit Attrappe (Wechsel auf „Fassadenbreite“ 10 m ergibt 53,9 m² für 798 × 430 px); bestehende Tests grün. Nicht geprüft: Genauigkeit am echten Foto, da keine gemessene Referenz vorliegt.
+- **Noch offen:** Prompt-Konvention (Maueröffnung statt Rahmenkante) und Vergleich mit gemessenen Referenzen.

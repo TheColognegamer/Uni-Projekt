@@ -48,7 +48,7 @@ Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js
 GWP-total (A1–A3 + B4 + C3 + C4, DIN EN 15804+A2 / DIN EN 15978) aller Fassadenvarianten (6 WDVS, 12 VHF) und Fenster (6: Holz, Holz-Alu, PVC × 2-/3-fach, wie im Modul Sanierung) für 30 und 50 Jahre, mit ÖKOBAUDAT-2024-II-Daten. Holz-Alu ist mangels generischem Datensatz als Holzrahmen + Alu-Deckschale angenähert.
 Flächen und Dämmdicken (gleiches U = 0,24 nach GModG) kommen aus dem Modul Sanierung (Ereignis `sanierung`).
 Diagramm aller Varianten, Gesamtfassade per Dropdown, Vergleich zweier Konfigurationen mit Wandskizze und Vor-/Nachteilen, aufklappbare Annahmen, PDF-Export.
-**Annahmen ändern** (z. B. Nutzungsdauern nach BBSR): nur in `src/lca-data.js`, danach `node tests/lca.test.js`. Grundlage: `LCA_Fassadensanierung_WDVS_VHF.xlsx` (Iris).
+**Annahmen ändern** (z. B. Nutzungsdauern nach BBSR): nur in `src/lca-data.js`, danach `node tests/lca.test.js`. Grundlage: `docs/LCA_Fassadensanierung_WDVS_VHF.xlsx` (Iris). Die App liest die Excel nicht ein; Werte sind in `src/lca-data.js` übertragen, der Test vergleicht gegen die Excel-Ergebnisse. Änderungen daher in beiden nachziehen.
 
 ## Tests
 ```bash

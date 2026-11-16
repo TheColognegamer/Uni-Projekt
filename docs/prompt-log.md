@@ -81,3 +81,11 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Korrektur:** Der Maßstab lässt sich jetzt nachträglich ändern (Modus oder Länge), ohne neuen Aufruf. Die Fassadenbreite wird als waagerechte Ausdehnung des Umrisses bestimmt, damit sie auch bei Giebelfassaden stimmt (vorher: oberste zwei Punkte, bei Giebel falsch).
 - **Prüfung:** Test mit Attrappe (Wechsel auf „Fassadenbreite“ 10 m ergibt 53,9 m² für 798 × 430 px); bestehende Tests grün. Nicht geprüft: Genauigkeit am echten Foto, da keine gemessene Referenz vorliegt.
 - **Noch offen:** Prompt-Konvention (Maueröffnung statt Rahmenkante) und Vergleich mit gemessenen Referenzen.
+
+### P-07 · Maßstab ohne Messen: KI schätzt aus Referenzobjekten · 16.11.2026 · Nicolai
+- **Ziel / Prompt (sinngemäß):** „Ich hätte es möglichst gerne ohne Messen, dass es direkt am Bild erkannt wird.“
+- **Fachliche Einordnung:** Ein einzelnes Foto enthält keinen absoluten Maßstab. Er lässt sich nur aus Objekten mit bekannter, eng streuender Größe schätzen (Türhöhe, Garagentor, Mauerwerksschichten, Stufen). Das Ergebnis ist deshalb eine **Schätzung mit Spanne**, kein Messwert.
+- **KI-Ergebnis:** Das Erkennungsschema liefert zusätzlich `scale_refs` (Strecke in Pixeln, Länge als min/typ/max, Konfidenz). Die App bildet den Median der Einzelmaßstäbe, schließt unsichere Referenzen aus, warnt bei widersprüchlichen Referenzen (> 25 %), zeigt die verwendeten Referenzen und eine Spanne der Nettofläche (Maßstab geht quadratisch ein). Rückfall: angenommene Türhöhe, dann gemessene Fassadenbreite.
+- **Annahmen im Prompt (zu prüfen):** Türhöhe 2,0–2,15 m, Garagentorhöhe 2,0–2,25 m, 3 NF- bzw. 4 DF-Schichten ≈ 25 cm, Stufenhöhe 0,15–0,19 m. Diese Werte stammen aus dem Modellwissen der KI und sind **nicht** gegen Normen oder Herstellerangaben geprüft; vor Verwendung im Paper mit Quellen belegen.
+- **Prüfung:** Test mit Attrappe (Schätzung, Spanne, Referenzliste, Wechsel zu Breite/Tür) grün. **Nicht geprüft:** wie gut die echte KI Referenzstrecken setzt und wie nah die Schätzung an gemessenen Maßen liegt.
+- **Hypothese für das Paper:** Der Fehler der Maßstabsschätzung (nicht der Flächenerkennung) dominiert die Gesamtunsicherheit; mit gemessener Referenz vergleichen.

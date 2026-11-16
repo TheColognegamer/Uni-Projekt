@@ -88,10 +88,14 @@
     $('rWin').textContent = ready && wins.length ? fmt(aW) + ' m²' : '–';
     $('rCount').textContent = wins.length;
     $('rNet').innerHTML = ready && facades.length ? '<b>' + fmt(aF - aW) + ' m²</b>' : '–';
+    const net = aF - aW, rg = S.autoScale === 'est' && S.scaleRange && ready && facades.length ? S.scaleRange : null;
+    $('rowRange').hidden = !rg;
+    if (rg) $('rRange').textContent = fmt(net * rg.lo * rg.lo, 1) + ' – ' + fmt(net * rg.hi * rg.hi, 1) + ' m²';
     $('rRatio').textContent = ready && facades.length && aF > 0 ? fmt((aW / aF) * 100, 1) + ' %' : '–';
 
-    $('sum').textContent = ready && facades.length ? `Wand netto ${fmt(aF - aW)} m² · Fassade ${fmt(aF)} m² · Öffnungen ${fmt(aW)} m² (${wins.length}) · Fensteranteil ${fmt(aF > 0 ? (aW / aF) * 100 : NaN, 1)} %` : '';
+    $('sum').textContent = ready && facades.length ? `Wand netto ${fmt(aF - aW)} m²${S.autoScale === 'est' && S.scaleRange ? ' (≈ ' + fmt((aF - aW) * S.scaleRange.lo ** 2, 0) + '–' + fmt((aF - aW) * S.scaleRange.hi ** 2, 0) + ')' : ''} · Fassade ${fmt(aF)} m² · Öffnungen ${fmt(aW)} m² (${wins.length}) · Fensteranteil ${fmt(aF > 0 ? (aW / aF) * 100 : NaN, 1)} %` : '';
     if (S.img && !ready) warn.push('Noch kein Maßstab gesetzt – es werden keine Flächen berechnet.');
+    if (ready && S.autoScale === 'est') warn.push('Maßstab von der KI aus Referenzobjekten geschätzt (Spanne siehe oben). Mit gemessener Fassadenbreite genauer.');
     if (ready && S.autoScale === 'door') warn.push('Maßstab aus angenommener Türhöhe – Ergebnis ist nur eine Größenordnung. Mit gemessener Fassadenbreite genauer.');
     if (ready && S.calib.type === 'line') warn.push('Referenzstrecke ohne Perspektivkorrektur: nur bei frontaler Aufnahme belastbar.');
     if (ready && S.calib.type === 'rect' && G.selfIntersects(S.calib.pts)) warn.push('Referenzrechteck: Punkte nicht in Umlaufreihenfolge.');
@@ -247,17 +251,46 @@
     const top = byY.slice(0, Math.max(2, n)).slice(0, 2), bot = byY.slice(-2);
     return [mid(top[0], top[1]), mid(bot[0], bot[1])];
   }
-  function applyAutoScale(facade, door) {
+  const median = (a) => { const b = [...a].sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+  // Maßstab aus den von der KI genannten Referenzstrecken: Median der Einzelmaßstäbe, Spanne aus den min/max-Angaben
+  function estimateScale(refs) {
+    const R = (refs || []).map((r) => { const d = Math.hypot(r.p2[0] - r.p1[0], r.p2[1] - r.p1[1]); return { ...r, d, s: r.typ / d, smin: r.min / d, smax: r.max / d }; })
+      .filter((r) => r.d >= 20 && r.typ > 0 && r.min > 0 && r.max >= r.min);
+    if (!R.length) return null;
+    let use = R.filter((r) => r.conf !== 'niedrig'), warn = null;
+    if (!use.length) { use = R; warn = 'Nur unsichere Referenzen – Ergebnis mit Vorsicht verwenden.'; }
+    const s = median(use.map((r) => r.s));
+    const lo = Math.min(median(use.map((r) => r.smin)), s), hi = Math.max(median(use.map((r) => r.smax)), s);
+    const ratio = Math.max(...use.map((r) => r.s)) / Math.min(...use.map((r) => r.s));
+    if (ratio > 1.25) warn = 'Die Referenzen der KI widersprechen sich (Maßstab weicht um ' + Math.round((ratio - 1) * 100) + ' % ab).';
+    const rep = use.reduce((a, b) => (Math.abs(Math.log(b.s / s)) < Math.abs(Math.log(a.s / s)) ? b : a));
+    return { s, lo: lo / s, hi: hi / s, rep, used: use, all: R, warn };
+  }
+  function renderRefs(est) {
+    $('refs').innerHTML = est ? est.all.map((r) => `<li>${est.used.includes(r) ? '✓' : '·'} ${r.label}: ${fmt(r.typ)} m (${fmt(r.min)}–${fmt(r.max)}), ${r.conf}${est.used.includes(r) ? '' : ' – nicht verwendet'}</li>`).join('') : '';
+  }
+  function applyAutoScale(facade, door, refs) {
+    S.scaleRange = null; renderRefs(null);
     const mode = document.querySelector('input[name=amode]:checked').value;
     if (mode === 'none') return null;
-    let p, len;
-    if (mode === 'width' && facade) { p = widthLine(facade.pts); len = +$('autoW').value; }
-    else if (mode === 'door' && door) { p = verticalMid(door.pts); len = +$('autoD').value; }
-    else return mode === 'door' ? 'Keine Tür erkannt. Wähle „Fassadenbreite“, trage die gemessene Breite ein – der Maßstab wird dann sofort gesetzt.' : 'Keine Fassade erkannt – bitte Maßstab manuell setzen.';
+    let p, len, note = null;
+    if (mode === 'est') {
+      const est = estimateScale(refs);
+      if (est) {
+        S.calib.type = 'line'; S.calib.pts = [est.rep.p1, est.rep.p2]; $('calL').value = (est.rep.d * est.s).toFixed(3);
+        document.querySelector('input[name=ctype][value=line]').checked = true;
+        S.scaleRange = { lo: est.lo, hi: est.hi }; S.autoScale = 'est'; renderRefs(est);
+        return est.warn;
+      }
+      if (door) { p = verticalMid(door.pts); len = +$('autoD').value; note = 'KI fand keine verlässliche Referenz, angenommene Türhöhe verwendet.'; S.autoScale = 'door'; }
+      else return 'KI fand keine verlässliche Referenz. Wähle „Fassadenbreite“ und trage die Breite ein oder setze den Maßstab selbst.';
+    } else if (mode === 'width' && facade) { p = widthLine(facade.pts); len = +$('autoW').value; S.autoScale = 'width'; }
+    else if (mode === 'door' && door) { p = verticalMid(door.pts); len = +$('autoD').value; S.autoScale = 'door'; }
+    else return mode === 'door' ? 'Keine Tür erkannt. Wähle „KI schätzt“ oder „Fassadenbreite“.' : 'Keine Fassade erkannt – bitte Maßstab manuell setzen.';
     if (!(len > 0)) return 'Auto-Maßstab: ungültige Länge.';
     S.calib.type = 'line'; S.calib.pts = [p[0], p[1]]; $('calL').value = len;
     document.querySelector('input[name=ctype][value=line]').checked = true;
-    S.autoScale = mode; return null;
+    return note;
   }
 
   async function runDetect() {
@@ -276,8 +309,10 @@
       setTool('facade'); // Werkzeug wählen, ohne den Maßstab zurückzusetzen
       S.shapes = shapes; S.active = null;
       S.auto = { shapes: JSON.parse(JSON.stringify(shapes)), mock: !!out.mock, model: out.model || null, dauer_s: (Date.now() - t) / 1000, notes: out.notes };
-      S.det = { facade: facades[0], door: doors[0] };
-      const scaleMsg = applyAutoScale(facades[0], doors[0]);
+      const refs = (out.scale_refs || []).map((q) => ({ label: q.label, p1: [q.p1.x / im.k, q.p1.y / im.k], p2: [q.p2.x / im.k, q.p2.y / im.k],
+        min: q.length_min_m, typ: q.length_typ_m, max: q.length_max_m, conf: q.confidence }));
+      S.det = { facade: facades[0], door: doors[0], refs };
+      const scaleMsg = applyAutoScale(facades[0], doors[0], refs);
       setHint((out.mock ? '[ATTRAPPE] ' : 'KI-Vorschlag: ') + shapes.length + ' Flächen. Bitte prüfen und korrigieren. ' + (scaleMsg || '') + ' ' + (out.notes || ''));
       recompute(); draw();
     } catch (e) {
@@ -288,7 +323,7 @@
   function reapplyScale() {
     if (!S.det) return;
     const f = S.shapes.includes(S.det.facade) ? S.det.facade : null, d = S.shapes.includes(S.det.door) ? S.det.door : null;
-    const msg = applyAutoScale(f, d);
+    const msg = applyAutoScale(f, d, S.det.refs);
     setHint(msg || 'Maßstab neu gesetzt.'); recompute(); draw();
   }
   document.querySelectorAll('input[name=amode]').forEach((r) => r.addEventListener('change', reapplyScale));

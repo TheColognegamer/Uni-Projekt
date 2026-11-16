@@ -31,10 +31,17 @@ if ((process.env.REQUIRE_ACCESS_CODE === '1' || process.env.RENDER) && !ACCESS_C
 
 const Pt = z.object({ x: z.number(), y: z.number() });
 const Poly = z.object({ label: z.string(), points: z.array(Pt) });
+const Ref = z.object({
+  label: z.string(),
+  p1: Pt, p2: Pt,
+  length_min_m: z.number(), length_typ_m: z.number(), length_max_m: z.number(),
+  confidence: z.enum(['hoch', 'mittel', 'niedrig']),
+});
 const Detection = z.object({
   facades: z.array(Poly),
   windows: z.array(Poly),
   doors: z.array(Poly),
+  scale_refs: z.array(Ref),
   notes: z.string(),
 });
 
@@ -46,6 +53,9 @@ Koordinaten sind Pixel des gelieferten Bildes, Ursprung oben links, x nach recht
 - facades: die zu messende Außenwandfläche der dem Betrachter zugewandten Gebäudeseite (nur Wand, ohne Dach, ohne Anbauten wie Garage, ohne Vorgarten). Normalerweise genau ein Polygon.
 - windows: jedes sichtbare Fenster, Umriss am äußeren Rand des Rahmens (Fensterbänke, Läden und Vorhänge nicht eingerechnet).
 - doors: jede Tür oder jedes Tor in der Wandfläche.
+- scale_refs: 2 bis 4 Strecken im Bild, deren reale Länge sich aus allgemein bekannten Maßen schätzen lässt, damit daraus der Maßstab folgt. Gib die Endpunkte p1 und p2 in Bildpixeln an (genau entlang der Strecke, waagerecht oder senkrecht in der Ebene der Fassade, nicht schräg in die Tiefe) und die reale Länge als Bereich length_min_m / length_typ_m / length_max_m in Metern.
+  Geeignet: Höhe von Haus- oder Terrassentüren (typisch 2,0 bis 2,15 m), Höhe eines Garagentors (typisch 2,0 bis 2,25 m), Mauerwerk mit sichtbaren Schichten über eine gezählte Anzahl Schichten (bei Ziegel/Klinker ergeben 3 Schichten im NF-Format bzw. 4 Schichten im DF-Format etwa 25 cm), Stufenhöhen (0,15 bis 0,19 m).
+  Nicht geeignet: Fassadenbreite, Gebäudehöhe, Fenstergrößen ohne erkennbaren Typ, alles, was stark streut. Schätze die Spanne ehrlich; setze confidence auf niedrig, wenn die Referenz unsicher ist. Wenn nichts Brauchbares erkennbar ist, gib eine leere Liste zurück. Erfinde nichts.
 Rechteckige Elemente als 4 Eckpunkte angeben, im Uhrzeigersinn ab links oben. Nichts erfinden: verdeckte oder unklare Teile nur markieren, wenn die Kante erkennbar ist, und das in notes erwähnen. Schreibe notes kurz auf Deutsch.`;
 
 function readBody(req) {
@@ -64,6 +74,10 @@ function mockDetection(w, h) {
     windows: [[378, 202, 512, 303], [619, 202, 687, 303], [853, 202, 992, 303], [378, 418, 512, 523], [853, 418, 992, 523]]
       .map((r, i) => ({ label: 'Fenster ' + (i + 1), points: rectPts(...r, w, h) })),
     doors: [{ label: 'Tür', points: rectPts(616, 428, 689, 583, w, h) }],
+    scale_refs: [
+      { label: 'Haustür (Höhe)', p1: { x: (652 / 1344) * w, y: (425 / 768) * h }, p2: { x: (652 / 1344) * w, y: (583 / 768) * h }, length_min_m: 1.985, length_typ_m: 2.01, length_max_m: 2.135, confidence: 'mittel' },
+      { label: 'Garagentor (Höhe)', p1: { x: (195 / 1344) * w, y: (447 / 768) * h }, p2: { x: (195 / 1344) * w, y: (601 / 768) * h }, length_min_m: 1.9, length_typ_m: 2.0, length_max_m: 2.25, confidence: 'niedrig' },
+    ],
     notes: 'ATTRAPPE: feste Beispielwerte für das Foto "hausfassade-nachher", keine echte Erkennung.',
     mock: true,
   };

@@ -7,7 +7,7 @@ const srv = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: '8180',
 await new Promise((r) => srv.stdout.on('data', (d) => /App:/.test(d) && r()));
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1360, height: 900 }, deviceScaleFactor: 1.5 });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
-await pg.goto('http://localhost:8180/');
+await pg.goto('http://localhost:8180/?experte=1');
 await pg.setInputFiles('#snap', photo); await pg.waitForFunction(() => document.querySelector('#rowRange') && !document.querySelector('#rowRange').hidden);
 const net = (await pg.textContent('#rNet')).trim();
 await pg.click('.tabs [data-tab=tabSanierung]'); await pg.waitForTimeout(500);

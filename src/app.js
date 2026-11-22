@@ -193,6 +193,7 @@
       }
     });
     if (S.active) drawPoly(S.active.pts, COLORS[S.active.kind], false, false);
+    if (window.KundeUI && window.KundeUI.vorschau) window.KundeUI.vorschau();
   }
 
   // ---------- Eingabe ----------
@@ -264,7 +265,7 @@
   $('stop').addEventListener('click', () => { if (S.t0 && !S.t1) { S.t1 = Date.now(); updateTimer(); } });
   $('file').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
-    const url = URL.createObjectURL(f); loadImage(url, f.name);
+    const url = URL.createObjectURL(f); loadImage(url, f.name, document.body.classList.contains('experte') ? undefined : runDetect);
   });
   window.addEventListener('keydown', (e) => { if (e.key === 'Enter') closeActive(); if (e.key === 'Escape') { S.active = null; draw(); } });
 
@@ -331,7 +332,7 @@
   async function runDetect() {
     if (!S.img) { setHint('Erst ein Foto laden.'); return; }
     const btns = [$('auto'), $('snapBtn')]; btns.forEach((b) => (b.disabled = true)); document.body.classList.add('busy'); setHint('KI analysiert das Foto …');
-    const t = Date.now();
+    const t = Date.now(); S.fehler = null;
     try {
       const im = downscaleToJpeg();
       const r = await fetch('/api/detect', { method: 'POST', headers: { 'content-type': 'application/json', 'x-access-code': $('code').value },
@@ -351,7 +352,7 @@
       setHint((out.mock ? '[ATTRAPPE] ' : 'KI-Vorschlag: ') + shapes.length + ' Flächen. Bitte prüfen und korrigieren. ' + (scaleMsg || '') + ' ' + (out.notes || ''));
       recompute(); draw();
     } catch (e) {
-      setHint('Automatische Erkennung nicht möglich: ' + e.message);
+      S.fehler = e.message; setHint('Automatische Erkennung nicht möglich: ' + e.message);
     } finally { btns.forEach((b) => (b.disabled = false)); document.body.classList.remove('busy'); }
   }
   // Auto-Maßstab nachträglich ändern (Modus oder Länge), ohne die KI erneut zu fragen
@@ -418,5 +419,14 @@
   }));
   // „Maßstab“ in der Werkzeugleiste öffnet den Bereich zum Setzen im Bild
   document.querySelector('[data-tool=calib]').addEventListener('click', () => { $('manual').open = true; });
+  // Schnittstelle für den einfachen Ablauf (src/kunde.js)
+  window.AufmassUI = {
+    erkennen: runDetect,
+    status: () => {
+      const fassade = S.shapes.some((s) => s.kind === 'facade'), r = updateResults();
+      return { hatBild: !!S.img, fehler: S.fehler || null, mock: !!(S.auto && S.auto.mock), fassade, massstabOk: !!S.calib.H,
+        wandNetto: r.ready && fassade ? r.aF - r.aW : null, art: S.autoScale || (S.calib.H ? S.calib.type : null), offeneErkennung: document.body.classList.contains('busy') };
+    },
+  };
   draw();
 })();

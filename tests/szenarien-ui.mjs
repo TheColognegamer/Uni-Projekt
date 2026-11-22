@@ -15,7 +15,7 @@ const srv = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: '8190',
 await new Promise((r) => srv.stdout.on('data', (d) => /App:/.test(d) && r()));
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1360, height: 1000 } });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
-await pg.goto('http://localhost:8190/');
+await pg.goto('http://localhost:8190/?experte=1');
 const probs = []; let n = 0; const ok = (c, t) => { n++; if (!c) probs.push(t); };
 const near = (a, b2, tol) => Math.abs(a - b2) <= tol;
 for (const s of S) {

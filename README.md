@@ -1,7 +1,9 @@
 # Lebenszyklusvergleich von Fassadensystemen – Prototyp (Gruppe 2)
 
 Web-App (reines HTML/JS, kein Build) für das **Fassadenaufmaß per Foto** mit anschließender Sanierungs- und CO₂-Bewertung.
-Alles ist in diesem Branch zusammengeführt, drei Reiter:
+**Zwei Ansichten.** Standard ist der **einfache Ablauf für Kunden**: Foto aufnehmen, drei Angaben (Baujahr, Stockwerke, Wandart; optional die Breite der Hauswand), dann drei Empfehlungen (beste Qualität, bestes Preis-Leistungs-Verhältnis, am umweltfreundlichsten) mit Preis und CO₂. Oben rechts schaltet **„Expertenansicht“** auf die Reiter um (auch per Adresse: `http://localhost:8000/?experte=1`). Die Wahl wird im Browser gemerkt.
+
+Die Expertenansicht enthält alle Module, vier Reiter:
 
 | Reiter | Inhalt | Code |
 |---|---|---|
@@ -64,11 +66,12 @@ Diagramm aller Varianten, Gesamtfassade per Dropdown, Vergleich zweier Konfigura
 node tests/bauphysik.test.js  # U-Werte und Dämmdicken gegen Handrechnung
 node tests/pdf.test.js        # PDF-Bericht (Aufbau, Zeichensatz, Querverweise)
 node tests/lca.test.js        # LCA-Rechnung gegen die Excel (22 Varianten) + Holz-Alu-Fenster gegen Handrechnung, 30/50 Jahre
+node tests/kunde.mjs <foto.png> [bildordner]   # einfacher Kundenablauf, Fehlerfall, Umschalter (Attrappe)
 node tests/kosten.test.js     # Kosten und Empfehlung gegen die Excel (Blatt LCC) und Invarianten
 node tests/szenarien.test.js  # fünf erfundene Gebäude: Handrechnung, Invarianten, Größenordnungen (Kette U-Wert → LCA)
 node tests/szenarien-ui.mjs   # dieselben Szenarien durch die Oberfläche, Abgleich mit dem Rechenkern
 node tests/geometry.test.js   # Geometrie-Kern
-node tests/e2e.mjs            # Browser-Smoke-Test (benötigt Playwright)
+node tests/e2e.mjs            # Browser-Smoke-Test der Expertenansicht (benötigt Playwright)
 node tests/integration.mjs <foto.png> [bildordner]   # Gesamtweg Aufmaß → Sanierung → LCA im Browser (Attrappe)
 node tests/compare_ground_truth.mjs <messung.json> --fassade nord   # Abweichung gegen Planmaße
 node tests/auto-mock.mjs <foto.png>   # KI-Vorschlags-Strecke mit Attrappe

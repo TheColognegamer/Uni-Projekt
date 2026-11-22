@@ -6,13 +6,13 @@ const { chromium } = require('playwright');
 const root = path.resolve(new URL('..', import.meta.url).pathname);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 const srv = http.createServer((q, r) => {
-  const f = path.join(root, q.url === '/' ? 'index.html' : q.url.split('?')[0]);
+  const u = q.url.split('?')[0]; const f = path.join(root, u === '/' ? 'index.html' : u);
   fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); r.end(); } else { r.writeHead(200, { 'content-type': types[path.extname(f)] || 'application/octet-stream' }); r.end(d); } });
 }).listen(0);
 const port = srv.address().port;
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1300, height: 900 } });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
-await pg.goto(`http://localhost:${port}/`);
+await pg.goto(`http://localhost:${port}/?experte=1`);
 await pg.click('#emptyDemo'); await pg.waitForFunction(() => window.__demo);
 const demo = await pg.evaluate(() => window.__demo);
 const box = await pg.locator('#cv').boundingBox();

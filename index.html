@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="src/design.css">
 <link rel="stylesheet" href="src/style.css">
 <link rel="stylesheet" href="src/module.css">
+<link rel="stylesheet" href="src/kunde.css">
 </head>
 <body>
 
@@ -27,6 +28,7 @@
     </nav>
 
     <div class="actions">
+      <button id="modeBtn" type="button" class="btn btn-quiet btn-sm">Expertenansicht</button>
       <label class="btn btn-primary" id="snapBtn">
         <svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></svg>
         <span><span class="hide-sm">Foto aufnehmen</span><span class="sr-only">Foto aufnehmen und auswerten</span></span>
@@ -35,6 +37,79 @@
     </div>
   </div>
 </header>
+
+<div id="kunde" class="kunde">
+  <ol class="k-dots" aria-label="Fortschritt">
+    <li data-n="1"><span>Foto</span></li>
+    <li data-n="2"><span>Angaben</span></li>
+    <li data-n="3"><span>Empfehlung</span></li>
+  </ol>
+
+  <section class="k-step" data-step="start">
+    <div class="k-hero">
+      <h1>Welche Fassadendämmung passt zu Ihrem Haus?</h1>
+      <p>Foto aufnehmen, drei Fragen beantworten, Empfehlung erhalten.</p>
+      <div class="k-cta">
+        <button id="kSnap" type="button" class="btn btn-primary btn-lg"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></svg>Foto aufnehmen</button>
+        <button id="kPick" type="button" class="btn btn-lg">Foto wählen</button>
+      </div>
+      <ul class="k-vorteile">
+        <li><b>Automatisch vermessen</b><span>Wand, Fenster und Türen werden erkannt.</span></li>
+        <li><b>Kosten und CO₂</b><span>Preis und Klimawirkung auf einen Blick.</span></li>
+        <li><b>Drei klare Empfehlungen</b><span>Beste Qualität, bestes Preis-Leistungs-Verhältnis, am umweltfreundlichsten.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="k-step" data-step="analyse" hidden>
+    <div class="k-mitte"><div class="k-ring"></div><h2>Wir vermessen Ihre Fassade</h2><p>Das dauert etwa zehn Sekunden.</p></div>
+  </section>
+
+  <section class="k-step" data-step="fehler" hidden>
+    <div class="k-mitte"><h2>Das hat leider nicht geklappt</h2><p id="kFehlerText"></p>
+      <div class="k-cta"><button id="kNochmal" type="button" class="btn btn-primary btn-lg">Anderes Foto</button><button id="kFehlerExperte" type="button" class="btn btn-quiet">Von Hand vermessen</button></div></div>
+  </section>
+
+  <section class="k-step" data-step="fragen" hidden>
+    <div class="k-fragen">
+      <div class="k-bild">
+        <canvas id="kPreview" aria-label="Ihr Foto mit erkannten Flächen"></canvas>
+        <span id="kMock" class="badge warn" hidden>Testmodus: Beispielwerte</span>
+        <p>Wand, Fenster und Türen wurden erkannt.</p>
+      </div>
+      <div class="k-form">
+        <h2>Ein paar Angaben zu Ihrem Haus</h2>
+        <div class="k-feld">
+          <label for="kBaujahr">Baujahr</label>
+          <span class="field"><input id="kBaujahr" type="number" min="1800" max="2030" step="1" value="1960" inputmode="numeric"></span>
+          <p class="k-klein">Ungefähr reicht.</p>
+        </div>
+        <div class="k-feld">
+          <label>Stockwerke</label>
+          <div class="k-stepper"><button type="button" class="btn" data-g="-1" aria-label="Weniger">−</button><b id="kGeschosse">3</b><button type="button" class="btn" data-g="1" aria-label="Mehr">+</button></div>
+          <p class="k-klein">Mit Erdgeschoss und ausgebautem Dach.</p>
+        </div>
+        <div class="k-feld">
+          <label>Wie ist die Wand gebaut?</label>
+          <div class="k-wahl">
+            <label><input type="radio" name="kWand" value="mauerwerk" checked><span><b>Mauerwerk</b><small>Ziegel oder Stein. Auch wenn Sie unsicher sind.</small></span></label>
+            <label><input type="radio" name="kWand" value="zweischalig"><span><b>Zweischalig</b><small>Klinker oder Verblender außen.</small></span></label>
+            <label><input type="radio" name="kWand" value="holz"><span><b>Holz oder Fachwerk</b><small>Sichtbares Holzgerüst oder Holzbau.</small></span></label>
+          </div>
+        </div>
+        <div class="k-feld">
+          <label for="kBreite">Breite der Hauswand <span class="k-opt">optional</span></label>
+          <span class="field"><input id="kBreite" type="text" inputmode="decimal" placeholder="z. B. 10,5"><span class="unit">m</span></span>
+          <p class="k-klein">Mit gemessener Breite wird die Berechnung genauer.</p>
+          <p class="k-pflicht" id="kBreitePflicht" hidden>Bitte angeben: Die Größe ließ sich aus dem Foto nicht ableiten.</p>
+        </div>
+        <button id="kWeiter" type="button" class="btn btn-primary btn-lg">Empfehlung anzeigen</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="k-step" data-step="ergebnis" hidden><div id="kErgebnis"></div></section>
+</div>
 
 <div id="tabAufmass" class="tab" role="tabpanel">
 <main class="shell">
@@ -229,5 +304,6 @@
 <script src="src/kosten.js"></script>
 <script src="src/kosten-ui.js"></script>
 <script src="src/app.js"></script>
+<script src="src/kunde.js"></script>
 </body>
 </html>

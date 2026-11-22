@@ -8,7 +8,7 @@ await new Promise((r) => srv.stdout.on('data', (d) => /App:/.test(d) && r()));
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message));
 await pg.addInitScript(() => { window.__fl = null; window.addEventListener('flaechen', (e) => { window.__fl = e.detail; }); });
-await pg.goto('http://localhost:8123/');
+await pg.goto('http://localhost:8123/?experte=1');
 // Handy-Ablauf: ein Foto aufnehmen -> Erkennung + Auto-Maßstab laufen von selbst
 await pg.setInputFiles('#snap', photo); await pg.waitForFunction(() => document.querySelector('#hint').textContent.length > 25 && !document.querySelector('#hint').textContent.includes('analysiert'));
 const hint = (await pg.textContent('#hint')).trim();

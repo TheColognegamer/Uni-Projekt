@@ -4,13 +4,13 @@
   const G = window.Geometry;
   const $ = (id) => document.getElementById(id);
   const cv = $('cv'), ctx = cv.getContext('2d');
-  const COLORS = { calib: '#d9730d', facade: '#0b6bcb', window: '#1a8f4a' };
-  const LABEL = { calib: 'Maßstab', facade: 'Fassade', window: 'Fenster' };
+  const COLORS = { calib: '#d9730d', facade: '#0b6bcb', window: '#1a8f4a', door: '#8b5a2b' };
+  const LABEL = { calib: 'Maßstab', facade: 'Fassade', window: 'Fenster', door: 'Tür' };
 
   const S = {
     img: null, name: '', tool: null,
     calib: { type: 'rect', pts: [], H: null },
-    shapes: [],            // {kind:'facade'|'window', pts}
+    shapes: [],            // {kind:'facade'|'window'|'door', pts}
     active: null,          // {kind, pts} im Entstehen
     drag: null, t0: null, t1: null, tick: null,
     auto: null,            // KI-Vorschlag (Original, für den Vergleich vor/nach Korrektur)
@@ -53,7 +53,8 @@
     } else {
       setHint(t === 'facade'
         ? 'Fassade: Eckpunkte der Außenwand anklicken, mit Klick auf den ersten Punkt oder „Fläche schließen“ beenden.'
-        : 'Fenster/Öffnung: Eckpunkte anklicken und schließen. Mehrere möglich.');
+        : t === 'door' ? 'Tür/Tor: Eckpunkte anklicken und schließen. Wird von der Wand abgezogen, zählt aber nicht als Fenster.'
+        : 'Fenster: Eckpunkte anklicken und schließen. Mehrere möglich.');
     }
     recompute(); draw();
   }
@@ -80,7 +81,9 @@
   function updateResults() {
     const warn = [];
     const facades = S.shapes.filter((s) => s.kind === 'facade');
-    const wins = S.shapes.filter((s) => s.kind === 'window');
+    const windows = S.shapes.filter((s) => s.kind === 'window');
+    const doors = S.shapes.filter((s) => s.kind === 'door');
+    const wins = [...windows, ...doors];   // alle Öffnungen (werden von der Wand abgezogen)
     const aF = facades.reduce((a, s) => a + areaOf(s.pts), 0);
     const aW = wins.reduce((a, s) => a + areaOf(s.pts), 0);
     const ready = !!S.calib.H;
@@ -119,6 +122,24 @@
     };
     dev(aF, 'refFacade', 'dFacade', facades.length > 0);
     dev(aW, 'refWin', 'dWin', wins.length > 0);
+    // Schnittstelle zum Sanierungsmodul (docs/schnittstelle-sanierung.md, Eingang 'flaechen').
+    // Pflichtfelder wie dort beschrieben; Türen stehen NICHT in 'fenster' (sonst würden sie als Fenster getauscht/bewertet).
+    const dims = (list) => (ready ? list.map((sh) => {
+      const m = sh.pts.map((q) => G.applyH(S.calib.H, q)), xs = m.map((q) => q[0]), ys = m.map((q) => q[1]);
+      return { b: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };   // Außenmaße (entzerrt, umschließendes Rechteck)
+    }) : []);
+    const haveWall = ready && facades.length > 0;
+    window.dispatchEvent(new CustomEvent('flaechen', { detail: {
+      aWand: haveWall ? aF - aW : NaN,
+      aFenster: ready && wins.length ? aW : NaN,       // Summe aller Öffnungen (inkl. Türen), wie in der Schnittstelle beschrieben
+      anzahl: wins.length,
+      fenster: dims(windows),
+      // Erweiterung (optional, ältere Empfänger ignorieren die Felder):
+      tueren: dims(doors), aTueren: ready ? doors.reduce((a, sh) => a + areaOf(sh.pts), 0) : NaN,
+      aFassadeBrutto: haveWall ? aF : NaN,
+      quelle: 'foto',
+      massstab: { art: S.autoScale || S.calib.type, spanneWand_m2: rg && haveWall ? [net * rg.lo * rg.lo, net * rg.hi * rg.hi] : null },
+    } }));
     return { aF, aW, ready, facades, wins };
   }
 
@@ -186,7 +207,7 @@
       if (calibDone()) return;
       S.calib.pts.push(p); recompute(); draw();
       if (calibDone()) setHint('Maßstab gesetzt. Weiter mit „2 · Fassade“.');
-    } else if (S.tool === 'facade' || S.tool === 'window') {
+    } else if (S.tool === 'facade' || S.tool === 'window' || S.tool === 'door') {
       if (!S.active) S.active = { kind: S.tool, pts: [] };
       S.active.pts.push(p); draw();
     }
@@ -304,7 +325,7 @@
       const out = await r.json();
       if (!r.ok) throw new Error(out.error || ('HTTP ' + r.status));
       const toImg = (poly, kind) => ({ kind, pts: poly.points.map((p) => [p.x / im.k, p.y / im.k]) });
-      const facades = out.facades.map((p) => toImg(p, 'facade')), doors = out.doors.map((p) => toImg(p, 'window'));
+      const facades = out.facades.map((p) => toImg(p, 'facade')), doors = out.doors.map((p) => toImg(p, 'door'));
       const shapes = [...facades, ...out.windows.map((p) => toImg(p, 'window')), ...doors].filter((s) => s.pts.length >= 3);
       setTool('facade'); // Werkzeug wählen, ohne den Maßstab zurückzusetzen
       S.shapes = shapes; S.active = null;

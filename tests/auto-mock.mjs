@@ -7,10 +7,20 @@ const srv = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: '8123',
 await new Promise((r) => srv.stdout.on('data', (d) => /App:/.test(d) && r()));
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message));
+await pg.addInitScript(() => { window.__fl = null; window.addEventListener('flaechen', (e) => { window.__fl = e.detail; }); });
 await pg.goto('http://localhost:8123/');
 // Handy-Ablauf: ein Foto aufnehmen -> Erkennung + Auto-Maßstab laufen von selbst
 await pg.setInputFiles('#snap', photo); await pg.waitForFunction(() => document.querySelector('#hint').textContent.length > 25 && !document.querySelector('#hint').textContent.includes('analysiert'));
 const hint = (await pg.textContent('#hint')).trim();
+// Schnittstelle 'flaechen' (docs/schnittstelle-aufmass.md): Felder und Werte prüfen
+let ifaceOk = true;
+if (mock) {
+  const d = await pg.evaluate(() => window.__fl);
+  const net = parseFloat((await pg.textContent('#rNet')).replace(',', '.'));
+  ifaceOk = !!d && Math.abs(d.aWand - net) < 0.02 && d.fenster.length === 5 && d.tueren.length === 1 && d.anzahl === 6 &&
+    d.fenster.every((f) => f.b > 0.5 && f.b < 3 && f.h > 0.5 && f.h < 3) && d.tueren[0].h > 1.5 && d.quelle === 'foto' && Array.isArray(d.massstab.spanneWand_m2);
+  console.log('Ereignis flaechen:', JSON.stringify({ aWand: d && +d.aWand.toFixed(2), aFenster: d && +d.aFenster.toFixed(2), anzahl: d && d.anzahl, fenster: d && d.fenster.length, tueren: d && d.tueren.length }), ifaceOk ? 'ok' : 'FEHLER');
+}
 // Standard: KI schätzt den Maßstab (Attrappe: Haustür 2,01 m) -> 55,27 m², Spanne sichtbar
 const num = async (id) => parseFloat((await pg.textContent(id)).replace(',', '.'));
 let modesOk = true;
@@ -29,5 +39,5 @@ const res = { hint, warn: await pg.$$eval('#warnings li', (l) => l.map((x) => x.
 console.log(JSON.stringify(res, null, 1));
 if (shot) await pg.screenshot({ path: shot });
 await b.close(); srv.kill();
-const ok = mock ? (res.n === 7 && modesOk && !errs.length) : /ANTHROPIC_API_KEY/.test(hint);
+const ok = mock ? (res.n === 7 && modesOk && ifaceOk && !errs.length) : /ANTHROPIC_API_KEY/.test(hint);
 console.log(ok ? 'OK' : 'FEHLGESCHLAGEN'); process.exit(ok ? 0 : 1);

@@ -18,7 +18,7 @@ const pct = (x) => (x >= 0 ? '+' : '') + (x * 100).toFixed(1) + ' %';
 const median = (a) => { const b = [...a].sort((x, y) => x - y), i = b.length >> 1; return b.length % 2 ? b[i] : (b[i - 1] + b[i]) / 2; };
 
 const types = gt.oeffnungen.filter((t) => t.typ !== 'kellerfenster'); // Kellerfenster zu klein für den Foto-Test
-const wins = m.flaechen.filter((f) => f.art === 'window' && f.flaeche_m2 > 0);
+const wins = m.flaechen.filter((f) => (f.art === 'window' || f.art === 'door') && f.flaeche_m2 > 0);
 console.log(`Fassade ${fassade} | Maßstab: ${m.massstab?.typ}, Länge ${m.massstab?.laenge_m} m | ${wins.length} erkannte Öffnungen\n`);
 
 const rows = wins.map((w, i) => {

@@ -19,7 +19,7 @@
 .brand h1 { font-size: 17px; font-weight: 650; letter-spacing: -.02em; line-height: 1.15; white-space: nowrap; }
 .brand p { font-size: 12px; color: var(--fg-3); line-height: 1.2; }
 
-.steps { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.steps { display: flex; gap: 4px; list-style: none; margin: 0 0 14px; padding: 0; counter-reset: s; flex-wrap: wrap; }
 .steps li { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 999px; color: var(--fg-3); font-size: 13.5px; font-weight: 500; transition: color .25s, background .25s; }
 .steps li::before {
   counter-increment: s; content: counter(s); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
@@ -129,7 +129,10 @@ footer.note { grid-column: 1 / -1; text-align: center; color: var(--fg-3); font-
 /* ---------- Responsiv ---------- */
 @media (max-width: 1020px) {
   .shell { grid-template-columns: 1fr; gap: 20px; }
-  .steps { display: none; }
+  .topbar-in { flex-wrap: wrap; }
+  .brand { flex: 1 1 auto; }
+  .tabs { order: 3; width: 100%; }
+  .tabs button { flex: 1; justify-content: center; }
 }
 @media (max-width: 600px) {
   .topbar-in { gap: 12px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
@@ -153,3 +156,5 @@ footer.note { grid-column: 1 / -1; text-align: center; color: var(--fg-3); font-
 }
 
 .item .t, .item .d { display: block; }
+
+@media (max-width: 600px) { .steps li:not(.is-active) > span { display: none; } .steps li { padding-right: 8px; } .steps li.is-active { padding-right: 12px; } }

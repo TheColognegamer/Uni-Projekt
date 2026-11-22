@@ -35,6 +35,7 @@
       S.calib.pts = []; S.calib.H = null; S.shapes = []; S.active = null; S.auto = null; S.autoScale = null; S.det = null;
       S.t0 = Date.now(); S.t1 = null;
       clearInterval(S.tick); S.tick = setInterval(updateTimer, 500);
+      const tabBtn = document.querySelector('.tabs [data-tab=tabAufmass]'); if (tabBtn && !tabBtn.classList.contains('active')) tabBtn.click();
       setTool('calib'); recompute(); draw(); updateTimer();
       if (then) then();
     };
@@ -380,6 +381,7 @@
       referenz_m2: { fassade_brutto: parseFloat($('refFacade').value) || null, fenster: parseFloat($('refWin').value) || null },
       toleranz_prozent: +$('tol').value,
       ki_vorschlag: S.auto,
+      sanierung: window.SanierungUI ? window.SanierungUI.ergebnis() : null,
       dauer_s: S.t0 ? ((S.t1 || Date.now()) - S.t0) / 1000 : null,
     };
     const a = document.createElement('a');

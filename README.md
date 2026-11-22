@@ -1,14 +1,22 @@
 # Lebenszyklusvergleich von Fassadensystemen – Prototyp (Gruppe 2)
 
-Web-App (reines HTML/JS, kein Build, keine Abhängigkeiten) für das **Fassadenaufmaß per Foto**.
-Aktueller Stand: assistiertes Aufmaß (Foto → Maßstab/Entzerrung → Fassade/Fenster markieren → m²).
-LCA-/LCC-Vergleich folgt in späteren Iterationen.
+Web-App (reines HTML/JS, kein Build) für das **Fassadenaufmaß per Foto** mit anschließender Sanierungs- und CO₂-Bewertung.
+Alles ist in diesem Branch zusammengeführt, drei Reiter:
+
+| Reiter | Inhalt | Code |
+|---|---|---|
+| **Aufmaß** | Foto → Maßstab/Entzerrung → Fassade, Fenster, Türen → m² (mit KI-Vorschlag) | `src/app.js`, `src/geometry.js`, `server.mjs` |
+| **Sanierung** | Bestandswand (U-Wert), Dämmdicke nach GModG, Fenster, Brandschutz, Zusammenfassung/PDF | `src/bauphysik.js`, `src/sanierung-ui.js`, `src/pdf*.js` |
+| **LCA** | GWP-Vergleich WDVS/VHF/Fenster für 30 und 50 Jahre (ÖKOBAUDAT) | `src/lca*.js` |
+
+Datenfluss: Aufmaß ─`flaechen`→ Sanierung ─`sanierung`→ LCA (→ Kosten). Schnittstellen: `docs/schnittstelle-aufmass.md`, `docs/schnittstelle-sanierung.md`. Gemeinsames Aussehen: `src/design.css` (`docs/design-system.md`).
+Hinweis: Die Module Sanierung und LCA wurden aus den Branches `claude/arbeitsbereich` und `LCA-Berechnung` **kopiert** (nur gelesen, dort wurde nichts verändert). Weiterentwicklung dort muss hier nachgezogen werden.
 
 ## Starten
 ```bash
-python3 -m http.server 8000   # dann http://localhost:8000 öffnen
-```
-Oder `index.html` direkt im Browser öffnen. „Demo-Fassade“ lädt ein synthetisches Testbild mit bekannter Wahrheit.
+npm install && npm start      # http://localhost:8000 (mit KI-Erkennung, siehe unten)
+python3 -m http.server 8000   # alternativ ohne KI-Erkennung, nur statische Seiten
+``` „Demo-Fassade“ lädt ein synthetisches Testbild mit bekannter Wahrheit.
 
 ## Bedienung
 1. Foto laden. 2. **Maßstab:** 4 Ecken eines Referenzrechtecks bekannter Größe (links oben, im Uhrzeigersinn) klicken und Maße eingeben – möglichst große Referenz (ganze Wand). 3. **Fassade** und 4. **Fenster/Öffnungen** als Polygone markieren (Schließen: ersten Punkt anklicken, Enter oder Button). Punkte sind verschiebbar.
@@ -30,15 +38,40 @@ Die Seite „Foto aufnehmen & auswerten“ öffnet am Handy direkt die Kamera, s
 
 **Stand:** Der Server-Aufruf an das Modell ist noch nicht gegen die echte API getestet.
 
+## Sanierung nach GModG: Dämmdicken und Fenstertausch
+Panel „4 · Sanierung“ und „5 · Fenstertausch“ (Code: `src/bauphysik.js`, Oberfläche: `src/sanierung-ui.js`).
+- **Eingabe (laienverständlich):** Baujahr, Wandart (Auswahl mit Erkennungshilfe) und Wandstärke.
+- **Bestand:** amtlicher Pauschal-U-Wert nach *Bekanntmachung der Regeln zur Datenaufnahme im Wohngebäudebestand* (2020), vollständige Tabelle 2: alle 9 Baualtersklassen (bis 1918 … ab 2002), massive Wände und Holz-/Fachwerkwände. Bei „keine Angabe“ wird die passende Ersatzzeile verwendet und angezeigt.
+- **Flächen:** aus dem Aufmaß-Modul; solange keins vorliegt, angenommene Flächen (Beispiel 250 m² Fassade, 16 Fenster).
+- **Rechnung:** R der Bestandswand = 1/U − Rsi − Rse → erforderliche Dämmdicke, damit U ≤ 0,24 W/(m²K) nach **GModG Anlage 7** (bis 28.07.2026 GEG). WDVS mit Rse = 0,04; hinterlüftete Vorhangfassade mit Rse = Rsi = 0,13 und ΔU für die Unterkonstruktion (Holz 0,02 / Alu 0,04).
+- **Dämmstoffe (laut Projektkonzept):** Mineralwolle, EPS, Holzfaser in beiden Systemen. Ausgegeben werden die rechnerische Dicke (genau U = 0,24, für den Vergleich „gleiche Dämmwirkung“) und die Ausführungsdicke (auf 2 cm aufgerundet). Hinweise zu Brandschutz (brennbare Dämmung in VHF, Brandriegel bei EPS-WDVS).
+- **Brandschutz:** Gebäudeklasse aus der Geschosszahl (oder manuell); unzulässige Dämmvarianten werden ausgegraut (GK 4–5: hinterlüftet nur nichtbrennbar, WDVS mind. schwerentflammbar, EPS mit Brandriegeln; Hochhaus: nur nichtbrennbar).
+- **Zusammenfassung:** kompakte Übersicht unter dem Tool (Kennzahlen, zulässige Dämmvarianten und Fenster, Hinweise), als Text kopierbar.
+- **PDF-Bericht:** Button „PDF herunterladen“ erzeugt einen A4-Bericht (Gebäude, Anforderungen, alle Dämmvarianten mit Brandschutz, Fenster, Hinweise, Grundlagen) direkt im Browser, ohne Bibliothek (`src/pdf.js`, `src/pdf-bericht.js`).
+- **Mögliche Fenster:** alle 6 Optionen (PVC/Holz/Holz-Alu × 2-/3-fach) mit Uw nach DIN EN ISO 10077-1 aus den Fenstermaßen und dem Rahmenanteil, geprüft gegen Uw ≤ 1,3.
+- **Schnittstellen:** Eingang Ereignis `flaechen` (vom Aufmaß), Ausgang Ereignis `sanierung` bzw. `window.SanierungUI.ergebnis()` (für Kosten/CO₂). Felder und Einheiten: `docs/schnittstelle-sanierung.md`.
+- **Annahmen:** Alle λ-, Ug-, Uf-, ψ- und ΔU-Werte stehen mit Quelle in `src/bauphysik.js` und sind dort änderbar.
+
+## LCA · CO₂-Vergleich (Reiter „LCA“)
+GWP-total (A1–A3 + B4 + C3 + C4, DIN EN 15804+A2 / DIN EN 15978) aller Fassadenvarianten (6 WDVS, 12 VHF) und Fenster (6: Holz, Holz-Alu, PVC × 2-/3-fach, wie im Modul Sanierung) für 30 und 50 Jahre, mit ÖKOBAUDAT-2024-II-Daten. Holz-Alu ist mangels generischem Datensatz als Holzrahmen + Alu-Deckschale angenähert.
+Flächen und Dämmdicken (gleiches U = 0,24 nach GModG) kommen aus dem Modul Sanierung (Ereignis `sanierung`).
+Diagramm aller Varianten, Gesamtfassade per Dropdown, Vergleich zweier Konfigurationen mit Wandskizze und Vor-/Nachteilen, aufklappbare Annahmen, PDF-Export.
+**Annahmen ändern** (z. B. Nutzungsdauern nach BBSR): nur in `src/lca-data.js`, danach `node tests/lca.test.js`. Grundlage: `docs/LCA_Fassadensanierung_WDVS_VHF.xlsx` (Iris). Die App liest die Excel nicht ein; Werte sind in `src/lca-data.js` übertragen, der Test vergleicht gegen die Excel-Ergebnisse. Änderungen daher in beiden nachziehen.
+
 ## Tests
 ```bash
+node tests/bauphysik.test.js  # U-Werte und Dämmdicken gegen Handrechnung
+node tests/pdf.test.js        # PDF-Bericht (Aufbau, Zeichensatz, Querverweise)
+node tests/lca.test.js        # LCA-Rechnung gegen die Excel (22 Varianten) + Holz-Alu-Fenster gegen Handrechnung, 30/50 Jahre
 node tests/geometry.test.js   # Geometrie-Kern
 node tests/e2e.mjs            # Browser-Smoke-Test (benötigt Playwright)
+node tests/integration.mjs <foto.png> [bildordner]   # Gesamtweg Aufmaß → Sanierung → LCA im Browser (Attrappe)
+node tests/compare_ground_truth.mjs <messung.json> --fassade nord   # Abweichung gegen Planmaße
 node tests/auto-mock.mjs <foto.png>   # KI-Vorschlags-Strecke mit Attrappe
 ```
 
 ## Dokumentation
-`docs/prompt-log.md` – Vibecoding-Log (Pflicht laut Aufgabenstellung).
+`docs/prompt-log.md` – Vibecoding-Log (Pflicht laut Aufgabenstellung), `docs/schnittstelle-aufmass.md`, `docs/schnittstelle-sanierung.md`, `docs/design-system.md`, `docs/testdaten/README.md` (Validierung gegen Planmaße).
 
 ## Hosting auf Render (ohne eigenen Rechner)
 Ungetestet; Stand der Dienste bitte selbst prüfen (Preise, Free-Stufe).

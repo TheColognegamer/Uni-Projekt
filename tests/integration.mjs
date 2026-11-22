@@ -1,0 +1,26 @@
+// Gesamtweg im Browser (Attrappe): Foto -> Aufmaß -> Sanierung übernimmt die Flächen -> LCA rechnet.
+// Aufruf: node tests/integration.mjs foto.png [bildordner]
+import { createRequire } from 'module'; import { spawn } from 'node:child_process';
+const { chromium } = createRequire(import.meta.url)('playwright');
+const photo = process.argv[2], shots = process.argv[3];
+const srv = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: '8180', MOCK: '1', ANTHROPIC_API_KEY: '' }, stdio: 'pipe' });
+await new Promise((r) => srv.stdout.on('data', (d) => /App:/.test(d) && r()));
+const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1360, height: 900 }, deviceScaleFactor: 1.5 });
+const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+await pg.goto('http://localhost:8180/');
+await pg.setInputFiles('#snap', photo); await pg.waitForFunction(() => document.querySelector('#rowRange') && !document.querySelector('#rowRange').hidden);
+const net = (await pg.textContent('#rNet')).trim();
+await pg.click('.tabs [data-tab=tabSanierung]'); await pg.waitForTimeout(500);
+const flInfo = (await pg.textContent('#flInfo')).trim(), quelle = (await pg.textContent('#flQuelle')).trim();
+const varianten = await pg.$$eval('#sVarianten tr', (r) => r.length), fenster = await pg.$$eval('#fRes tr', (r) => r.length);
+const zf = (await pg.textContent('#zusammenfassung')).trim().length;
+if (shots) await pg.screenshot({ path: shots + '/sanierung.png' });
+await pg.click('.tabs [data-tab=tabLca]'); await pg.waitForTimeout(800);
+const lcaHidden = await pg.$eval('#tabLca', (e) => e.hidden), lcaLen = (await pg.textContent('#tabLca')).trim().length, charts = await pg.$$eval('#tabLca svg', (s) => s.length);
+if (shots) await pg.screenshot({ path: shots + '/lca.png' });
+await pg.click('.tabs [data-tab=tabAufmass]'); await pg.waitForTimeout(200);
+const back = await pg.$eval('#tabAufmass', (e) => !e.hidden);
+console.log(JSON.stringify({ aufmassNetto: net, sanierungQuelle: quelle, flInfo: flInfo.slice(0, 90), varianten, fensterZeilen: fenster, zusammenfassungZeichen: zf, lcaSichtbar: !lcaHidden, lcaZeichen: lcaLen, lcaDiagramme: charts, zurueck: back, errs }, null, 1));
+await b.close(); srv.kill();
+const ok = /Aufmaß/.test(quelle + flInfo) && !/Annahme/.test(quelle) && varianten >= 6 && fenster >= 2 && zf > 200 && !lcaHidden && lcaLen > 300 && charts >= 1 && back && !errs.length;
+console.log(ok ? 'INTEGRATION OK' : 'INTEGRATION FEHLGESCHLAGEN'); process.exit(ok ? 0 : 1);

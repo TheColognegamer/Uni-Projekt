@@ -8,6 +8,7 @@
 <title>Fassaden-Aufmaß</title>
 <link rel="stylesheet" href="src/design.css">
 <link rel="stylesheet" href="src/style.css">
+<link rel="stylesheet" href="src/module.css">
 </head>
 <body>
 
@@ -18,12 +19,11 @@
       <div><h1>Fassaden-Aufmaß</h1><p>Foto aufnehmen, Flächen erhalten</p></div>
     </div>
 
-    <ol class="steps" aria-label="Fortschritt">
-      <li data-s="1">Foto</li>
-      <li data-s="2">Maßstab</li>
-      <li data-s="3">Markieren</li>
-      <li data-s="4">Ergebnis</li>
-    </ol>
+    <nav class="tabs seg" role="tablist" aria-label="Bereiche">
+      <button type="button" role="tab" data-tab="tabAufmass" aria-selected="true" class="active">Aufmaß</button>
+      <button type="button" role="tab" data-tab="tabSanierung" aria-selected="false">Sanierung</button>
+      <button type="button" role="tab" data-tab="tabLca" aria-selected="false">LCA</button>
+    </nav>
 
     <div class="actions">
       <label class="btn btn-primary" id="snapBtn">
@@ -35,8 +35,15 @@
   </div>
 </header>
 
+<div id="tabAufmass" class="tab" role="tabpanel">
 <main class="shell">
   <section class="col-main">
+    <ol class="steps" aria-label="Fortschritt">
+      <li data-s="1"><span>Foto</span></li>
+      <li data-s="2"><span>Maßstab</span></li>
+      <li data-s="3"><span>Markieren</span></li>
+      <li data-s="4"><span>Ergebnis</span></li>
+    </ol>
     <div class="tools">
       <div class="seg" role="group" aria-label="Werkzeug">
         <button type="button" data-tool="calib"><svg viewBox="0 0 24 24"><path d="M3.5 16.5 16.5 3.5l4 4-13 13z"/><path d="m8 12 2 2M11 9l2 2M14 6l2 2"/></svg>Maßstab</button>
@@ -157,8 +164,64 @@
 
   <footer class="note">Prototyp · Alle Werte sind Schätzungen und ersetzen kein fachliches Aufmaß.</footer>
 </main>
+</div>
+
+<div id="tabSanierung" class="tab" role="tabpanel" hidden>
+  <div class="page">
+    <div class="page-head"><h2>Sanierung</h2><p>Heutiger Wandaufbau, nötige Dämmdicke nach GModG und mögliche Fenster. Die Flächen kommen automatisch aus dem Aufmaß.</p></div>
+    <div class="cards-2">
+      <section class="card">
+        <h2>Ihr Gebäude</h2>
+        <div class="form-row"><label for="sBaujahr">Baujahr</label><span class="field"><input id="sBaujahr" type="number" step="1" min="1800" max="2030" value="1960"></span></div>
+        <p class="small" id="sKlasse"></p>
+        <p class="form-label">Wie ist die Außenwand gebaut?</p>
+        <div id="sKonstr" class="choices"></div>
+        <div class="form-row"><label for="sDicke">Wandstärke <span class="small">an der Fenster- oder Türlaibung messen, inkl. Putz</span></label><span class="field"><input id="sDicke" type="number" step="1" min="10" max="100" value="36"><span class="unit">cm</span></span></div>
+        <p class="small" id="sBestand"></p>
+        <div class="form-row"><label for="sGeschosse">Geschosse über Gelände (inkl. EG)</label><span class="field"><input id="sGeschosse" type="number" step="1" min="1" max="40" value="4"></span></div>
+        <div class="form-row"><label for="sGk">Gebäudeklasse</label><select id="sGk"><option value="auto">automatisch aus Geschossen</option></select></div>
+        <p class="small" id="sGkInfo"></p>
+      </section>
+
+      <div>
+        <section class="card">
+          <h2>Flächen <span id="flQuelle" class="tag"></span></h2>
+          <p class="small">Aus dem Aufmaß. Solange dort nichts gemessen ist, rechnet das Modul mit diesen Annahmen.</p>
+          <div class="form-row"><label for="aFassade">Fassade gesamt</label><span class="field"><input id="aFassade" type="number" step="1" min="1" value="250"><span class="unit">m²</span></span></div>
+          <div class="form-row"><label for="aAnz">Fenster</label><span class="field"><input id="aAnz" type="number" step="1" min="0" value="16" aria-label="Anzahl Fenster"><span class="unit">Stück</span></span></div>
+          <div class="form-row"><label for="aB">Maße je Fenster</label><span class="field"><input id="aB" type="number" step="0.05" min="0.2" value="1.2" aria-label="Fensterbreite"><span class="unit">×</span><input id="aH" type="number" step="0.05" min="0.2" value="1.4" aria-label="Fensterhöhe"><span class="unit">m</span></span></div>
+          <p class="small" id="flInfo"></p>
+        </section>
+        <section class="card" style="margin-top:16px">
+          <h2>Mögliche Fenster</h2>
+          <div class="form-row"><label for="fAnteil">Rahmenanteil <span class="small">typisch 25 bis 35 %</span></label><span class="field"><input id="fAnteil" type="number" step="1" min="0" max="90" value="30"><span class="unit">%</span></span></div>
+          <div class="scroll"><table id="fRes"></table></div>
+          <p class="small" id="fInfo"></p>
+        </section>
+      </div>
+
+      <section class="card wide">
+        <h2>Dämmung nach GModG</h2>
+        <div class="form-row"><label for="sUk">Vorhangfassade: Unterkonstruktion</label><select id="sUk"></select></div>
+        <div class="scroll"><table id="sVarianten"></table></div>
+        <p class="small" id="sHinweise"></p>
+      </section>
+    </div>
+    <section id="zusammenfassung" class="zf" aria-live="polite"></section>
+  </div>
+</div>
+
+<div id="tabLca" class="tab lca" role="tabpanel" hidden></div>
 
 <script src="src/geometry.js"></script>
+<script src="src/bauphysik.js"></script>
+<script src="src/pdf.js"></script>
+<script src="src/pdf-bericht.js"></script>
+<script src="src/sanierung-ui.js"></script>
+<script src="src/lca-data.js"></script>
+<script src="src/lca.js"></script>
+<script src="src/lca-pdf.js"></script>
+<script src="src/lca-ui.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

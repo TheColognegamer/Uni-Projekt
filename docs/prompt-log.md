@@ -11,6 +11,8 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 | Tool | Modell / Version | Zeitraum | Nutzung |
 |---|---|---|---|
 | Claude Code (Web/Cloud-Sitzung) | *bitte aus der Sitzung eintragen (Modellname/Version)* | ab 09.11.2026 | Prototyp-Entwicklung |
+| Claude (claude.ai, Projekt „Life Cycle Engineering“) | Claude Sonnet 5.5 | 15.11.2026 | LCA-Datengrundlage als Excel (Iris) |
+| Claude Code (Desktop-App, lokal) | Claude Opus 5.5 | ab 16.11.2026 | LCA-Modul im Branch `LCA-Berechnung` (Iris) |
 
 ## Eintragsvorlage
 
@@ -116,3 +118,79 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **KI-Ergebnis:** Gemeinsames Designsystem `src/design.css` (Tokens, Bausteine, Hell/Dunkel), neue Oberfläche mit Fortschrittsanzeige, großem Ergebnis, Maßstabsauswahl als Liste, Leer- und Ladezustand, Badge zur Maßstabsqualität, mobiler Ansicht; Doku `docs/design-system.md`. Alle Element-IDs bleiben erhalten, Tests laufen weiter.
 - **Auffälligkeiten (per Screenshot gefunden und behoben):** Handy-Kopfzeile mit falsch platzierter Schaltfläche, abgeschnittener Leerzustand, unsichtbare Schaltflächen auf hellem Grund, doppelte Hinweise.
 - **Nicht geprüft:** echte Geräte (nur Headless-Chromium bei 390 und 1360 px, hell und dunkel), Bedienbarkeit durch Testpersonen.
+
+---
+
+## Einträge aus den Sanierungs- und LCA-Sitzungen
+Übernommen aus den Branches `claude/arbeitsbereich` und `LCA-Berechnung`. Eigene Nummerierung (P-xx), die von der Nummerierung oben unabhängig ist.
+
+### P-05 · Dämmdicken nach GModG und Fenstertausch · 13.11.2026 · Moritz
+- **Ziel:** Aus Wandstärke und Baumaterial der Bestandswand (Köln, 1950–1970) die nötige Dämmdicke für WDVS und hinterlüftete Vorhangfassade berechnen, sodass die U-Werte nach GModG/GEG eingehalten werden; dazu Fenstertausch.
+- **Prompt (Kurzfassung):** Tool soll anhand einer Wandstärke und eines Baumaterials die Dicke der Dämmmaterialien berechnen, U-Werte nach GEG bzw. GModG berücksichtigen, Fenstertausch ebenfalls; je System 3 Dämmstoffe.
+- **Tool/Modell:** Claude (Opus 5.5) mit GitHub-Anbindung, Arbeit im eigenen Branch `claude/arbeitsbereich`.
+- **KI-Ergebnis:** `src/bauphysik.js` (Kennwerte + Rechnung), `src/sanierung-ui.js` (Panel 4/5), Anbindung an das Aufmaß über das Ereignis `flaechen`, JSON-Export `sanierung`, Test `tests/bauphysik.test.js`.
+- **Recherche der KI:** Das GEG heißt seit 29.07.2026 GModG (BGBl. 2026 I Nr. 226); Höchstwerte Anlage 7 unverändert: Außenwand 0,24, Fenster Uw 1,3 W/(m²K).
+- **Annahmen, die das Team prüfen muss:** λ-Werte der Bestandsbaustoffe (Bims- und Trümmerbeton sind Schätzwerte), ΔU = 0,03 für die VHF-Unterkonstruktion, Uw der neuen Fenster (Marktrichtwerte), Putzdicken 1,5 + 2 cm. Dämmstoffe zunächst Platzhalter (siehe P-06).
+- **Prüfung:** Unit-Test gegen Handrechnung (Vollziegel 36,5 cm: U = 1,51; EPS 035 → 12,3 cm → 14 cm, U = 0,214); Browser-Test mit Demo-Fassade (Wand netto 53,28 m² korrekt übernommen).
+- **Grenzen:** Vereinfachtes Verfahren für LPh 2, keine Feuchte-/Tauwasserprüfung, keine Laibungs- und Sockeldetails, Dübel im WDVS vernachlässigt.
+
+### P-06 · Abgleich mit dem Projektkonzept · 13.11.2026 · Moritz
+- **Ziel:** Rechenmodul an die Festlegungen im Projektkonzept (PDF) anpassen.
+- **Prompt:** Projektkonzept als Anhang (vorher: „Dämmstoffe haben wir schon festgelegt“, LCC „guck im Anhang“).
+- **KI-Ergebnis:** Dämmstoffe in beiden Systemen Mineralwolle/EPS/Holzfaser (λ 0,035/0,035/0,040 laut Konzept); VHF-Unterkonstruktion Holz oder Alu als Auswahl; Spalte „rechnerische Dicke“ für den Vergleich bei gleicher Dämmwirkung; Fenster Uw nach DIN EN ISO 10077-1 aus Rahmen (PVC/Holz/Holz-Alu), 2-/3-fach-Verglasung und Rahmenanteil, je Fenster mit Maßen aus dem Aufmaß.
+- **Fachliche Hinweise der KI:** EPS und Holzfaser in hinterlüfteten Fassaden sind brennbar; ab Gebäudeklasse 4 fordert die Bauordnung nichtbrennbare Dämmstoffe – vom Team zu prüfen. 2-fach-Verglasung liegt bei kleinen Fenstern über Uw 1,3 (z. B. 0,6 × 0,8 m Holz: 1,37).
+- **Nicht umgesetzt (anderer Teil):** LCC über 20/30/50 Jahre und THG (Module A1–A5, B4, C1–C4, D); das Konzept enthält dafür noch keine Zahlen. Die Mengen werden für diese Module bereitgestellt.
+- **Prüfung:** Unit-Tests gegen Handrechnung (u. a. Uw PVC 3-fach 1,2 × 1,4 m = 0,88), Browser-Test mit Demo-Fassade (Fenstermaße 1,20 × 1,40 m korrekt erkannt).
+- **Unsicher/Annahmen:** ΔU der Unterkonstruktionen, Ug/Uf/ψ-Richtwerte, Glasumfang vereinfacht (ein Flügel).
+
+### P-07 · Schnittstellen zu Aufmaß und Kosten/CO₂ · 13.11.2026 · Moritz
+- **Ziel:** Aufgabenteilung abbilden: Flächen kommen aus dem Aufmaß (andere Person), Kosten und CO₂ (andere Person) greifen auf Dämmdicken und Fenster zu.
+- **Prompt (Kurzfassung):** „Die Fläche kommt von jemand anders, du musst daran anknüpfen … Kosten und CO₂ macht jemand anders und muss auf meine Dämmdicken und Fenster abgreifen.“
+- **KI-Ergebnis:** Ausgangsereignis `sanierung`, Beschreibung beider Schnittstellen mit Feldern und Einheiten in `docs/schnittstelle-sanierung.md`.
+- **Prüfung:** Browser-Test mit simuliertem Aufmaß-Ereignis (100 m² Wand, 3 Fenster 1,5 × 2 m) → 6 Varianten, Volumen EPS-WDVS 14 m³, Uw 0,85.
+
+### P-08 · Amtliche Wandkonstruktionen, Laien-Eingabe, Flächen-Annahme · 13.11.2026 · Moritz
+- **Prompt (Kurzfassung):** „Wandbaustoff mit den Materialien der Jahre hinterlegen, die es offiziell gibt. Ein Investor ist kein Fachmann. Bei den Fenstern den Bestand weglassen. Als Flächen und Fenster einfach mal was annehmen.“
+- **KI-Ergebnis:** Bestandswand jetzt über Baujahr + Wandart + Wandstärke mit amtlichen Pauschal-U-Werten aus der *Bekanntmachung der Regeln zur Datenaufnahme und Datenverwendung im Wohngebäudebestand* vom 08.10.2020 (BAnz AT 04.12.2020 B1), Tab. 2; die vorher von der KI geschätzten λ-Werte (z. B. Bims, Trümmerbeton) sind entfernt. Wandarten mit kurzer Erkennungshilfe für Laien. Fensterbestand entfernt; stattdessen Tabelle aller 6 möglichen Fenster mit Uw und Zulässigkeit. Angenommene Flächen (250 m² Fassade, 16 Fenster 1,20 × 1,40 m), die automatisch durch das Aufmaß ersetzt werden.
+- **Auffälligkeit:** Tabelle 2 nennt für Vollstein-Wände ab 1958 „keine Angabe“; das Tool nimmt dann ersatzweise „Sonstige massive Wandaufbauten“ und weist darauf hin.
+- **Prüfung:** Unit-Tests gegen Tabellenwerte und Handrechnung; Browser-Test mit Annahme und mit simuliertem Aufmaß.
+- **Vom Team zu prüfen:** Werte gegen das Original im Bundesanzeiger abgleichen (von der KI über eine Textfassung gelesen); Beispielflächen.
+
+### P-09 · Vollständige Tabelle 2 bis „ab 2002“ · 13.11.2026 · Moritz
+- **Prompt:** „Baue die komplette Tabelle bis 2002 mit ein.“
+- **KI-Ergebnis:** Alle 9 Baualtersklassen (bis 1918, 1919–48, 1949–57, 1958–68, 1969–78, 1979–83, 1984–94, 1995–2001, ab 2002) und alle Außenwandzeilen (5 massiv, 4 Holz/Fachwerk) der Tab. 2. Ersatzregeln bei „keine Angabe“ (Vollstein → sonstige massiv, zweischalig mit Dämmung → ohne, Fachwerk → sonstige Holzkonstruktion). Zusatzhinweise: Ausnahme GModG Anlage 7 Nr. 1b für Wände, die nach 1983 unter Wärmeschutzvorschriften errichtet wurden; Feuchteschutz bei Holz/Fachwerk.
+- **Prüfung:** Unit-Test über alle Klassengrenzen (z. B. 1918/1919, 1957/1958, 2001/2002) und Holzzeilen; Browser-Test mit vier Beispielen.
+- **Vom Team zu prüfen:** Tabellenwerte gegen das Bundesanzeiger-Original (die KI hat eine Textauswertung des PDFs genutzt).
+
+### P-10 · Brandschutz nach Gebäudeklasse und Zusammenfassung · 13.11.2026 · Moritz
+- **Prompt:** „Welche Stoffe sind brandresistent und zugelassen?“ → „Ja, pflege das mit ein. Ich möchte am Ende auch eine übersichtliche Ausgabe haben, in der alles kompakt zusammengefasst ist.“
+- **KI-Ergebnis:** Eingabe Geschosszahl → Gebäudeklasse (Annahme: EG-Fußboden 0,6 m + 2,8 m je Geschoss; manuell überschreibbar). Regeln: GK 1–3 alle Dämmstoffe; GK 4–5 WDVS mindestens schwerentflammbar (MBO § 28 Abs. 3), EPS nur mit Brandriegeln, Holzfaser-WDVS nur mit Zulassung als schwerentflammbar, hinterlüftet nur nichtbrennbar (MVV TB Anhang 6 Nr. 3.1); Hochhaus nur nichtbrennbar. Unzulässige Varianten werden ausgegraut. Zusammenfassung mit Kennzahlen, zulässigen Varianten und Fenstern, Hinweisen; als Text kopierbar und im Ausgang `zusammenfassungText`.
+- **Prüfung:** Unit-Tests (3/4/8/9 Geschosse, zulässige Kombinationen je Klasse); Browser-Test mit 3, 4 und 10 Geschossen sowie manueller Klasse.
+- **Grenzen / vom Team zu prüfen:** Gebäudeklasse vereinfacht nur über die Höhe (Zahl und Größe der Nutzungseinheiten nicht berücksichtigt); Landesbauordnung NRW; Systemzulassungen (z. B. schwerentflammbare Holzfaser-WDVS) im Einzelfall.
+
+### P-11 · PDF-Ausgabe · 13.11.2026 · Moritz
+- **Prompt:** „Ich möchte eine Ausgabe als PDF.“
+- **KI-Ergebnis:** Button „PDF herunterladen“ in der Zusammenfassung. Eigener, abhängigkeitsfreier PDF-Erzeuger (`src/pdf.js`: Helvetica/WinAnsi, Text, Linien, Flächen, Zeilenumbruch) und Berichtsaufbau (`src/pdf-bericht.js`): Kennzahlen, Gebäude/Bestand, Anforderungen, alle 6 Dämmvarianten mit Brandschutz-Status, Fenster, Hinweise, Grundlagen/Annahmen, Fußzeile mit Seitenzahlen. Auf claude.ai über die Download-Funktion der Plattform, sonst normaler Browser-Download.
+- **Entscheidung der KI:** keine externe Bibliothek (z. B. jsPDF), damit das Tool weiter ohne Build und offline läuft. Folge: Sonderzeichen außerhalb WinAnsi werden ersetzt (≤ → <=, λ → Lambda, CO₂ → CO2).
+- **Prüfung:** Unit-Test (Zeichensatz, xref-Offsets, Inhalte), `qpdf --check`, Browser-Download-Test, Sichtprüfung mit PDFium (Chrome/Edge-Engine). Auffälligkeit: Die Vorschau mit Poppler zeigte „²“ nicht an (Ersatzschrift); in PDFium korrekt.
+
+### P-12 · LCA-Datengrundlage als Excel · 15.11.2026 · Iris
+- **Ziel:** Schichtaufbauten WDVS, VHF und Fenster mit ÖKOBAUDAT-Werten (EN 15804+A2) und Formeln für GWP-total über 30 und 50 Jahre als Grundlage für die Programmierung.
+- **Prompt (Kurzfassung):** „Erstelle eine Exceltabelle, wo die Materialien aus der Folie (Fassadenpaket) mit offiziellen Werten aus der ÖKOBAUDAT ausgefüllt sind … Auswertung GWP-total nach DIN EN 15978 / DIN EN 15804+A2 (A1–A3 + B4 + C3 + C4) … Dicke variierbar … alle Schichten auf 1 m² Wandfläche umrechnen … für 30 und 50 Jahre … Formeln in Excel hinterlegen.“
+- **KI-Ergebnis:** `LCA_Fassadensanierung_WDVS_VHF.xlsx` mit 24 Datensätzen (ÖKOBAUDAT 2024-II, UUID + Link), Umrechnung auf 1 m², Austauschzyklen, 18 Fassaden- und 6 Fenstervarianten, Dropdown für die Gesamtfassade, Diagramm, Plausibilisierung gegen Systemdatensätze.
+- **Auffälligkeiten (von der KI selbst gemeldet):** Silikatputz und WDVS-Dübel nur als Proxy-Datensätze; Nutzungsdauern aus dem Gedächtnis „in Anlehnung an BBSR“, nicht nachgeschlagen; Mengen der Nebenschichten sind Annahmen; Silikat-Aufbau +42 % gegenüber dem Systemdatensatz.
+- **Vom Team zu prüfen:** Nutzungsdauern gegen die BBSR-Tabelle, Mengenannahmen, Gültigkeit der generischen Datensätze (bis 2026).
+
+### P-13 · LCA-Reiter in der Web-App · 16.11.2026 · Iris
+- **Ziel:** Die Excel-Rechnung in die Web-App übertragen (Branch `LCA-Berechnung`), mit den Dämmdicken aus dem Modul Sanierung, damit alle Varianten denselben U-Wert nach GModG haben.
+- **Prompt (Kurzfassung):** „LCA soll ein eigener Reiter sein. Das Balkendiagramm aus der Excel behalten … Dropdown, das die kg CO₂-Äq. in 30 und 50 Jahren ausgibt … zwei Fassadensysteme konfigurieren und vergleichen inkl. Balkengraph und Vor-/Nachteile … aufklappbare Tabelle Annahmen … Skizze für den Wandaufbau … Dicken aus dem Branch claude/arbeitsbereich, alle Konfigurationen mit gleichem U-Wert (GModG) … Export als PDF.“
+- **KI-Ergebnis:** `src/lca-data.js` (alle Werte und Annahmen aus der Excel an einer Stelle), `src/lca.js` (Rechenkern), `src/lca-ui.js` (Reiter mit Diagramm aller 18 Varianten, Fensterdiagramm, Dropdown Gesamtfassade, Vergleich A/B mit Wandskizze und Vor-/Nachteilen, Umschalter 30/50/beide Jahre, aufklappbare Annahmen), `src/lca-pdf.js` (PDF-Bericht mit MiniPDF aus P-11), `tests/lca.test.js`. Der Branch von Moritz (`claude/arbeitsbereich`) wurde dafür in `LCA-Berechnung` übernommen; Dicken kommen aus `bauphysik.js` (exakte Dicke für U = 0,24, wahlweise Plattendicke), unzulässige Varianten (Brandschutz) werden blass dargestellt.
+- **Prüfung:** Unit-Test: 22 Varianten je m² (18 Fassaden, Holz- und PVC-Fenster) stimmen mit der Excel überein (Startdicken 160/180 mm); die 2 Holz-Alu-Fenster (nicht in der Excel) werden gegen eine Handrechnung geprüft; bei der Gesamtfassade wird die opake Wand gegen die Excel geprüft (7.320 kg bei 30 a), der Fensteranteil jetzt mit Holz-Alu statt Alu; Test, dass die Dicken aus `bauphysik.js` genau U = 0,24 ergeben. Browser-Test: Reiterwechsel, Dropdowns, A/B-Konfiguration, Gebäudeklasse 1–3 vs. 4–5, Handy-Breite ohne horizontales Scrollen, PDF wird erzeugt (4 Seiten).
+- **Unsicher / vom Team zu prüfen:** Vor-/Nachteile für Putz, Unterkonstruktion, Bekleidung und Fenster sind Textvorschläge der KI (in der App mit * markiert). Fensterrahmen wie im Modul Sanierung (Holz, Holz-Alu, PVC) statt Aluminium aus der Excel; Holz-Alu hat keinen generischen ÖKOBAUDAT-Datensatz und ist als Holzrahmen + Alu-Deckschale (0,5 kg/m, Nutzungsdauer 50 a) angenähert. Wandskizze ist schematisch (Klebemörtel, Luftschicht, Bekleidungsdicken als Annahme).
+
+### P-12 · Sanierung und LCA in diesen Branch übernommen · 22.11.2026 · Nicolai
+- **Prompt (sinngemäß):** Die Ergebnisse der U-Wert-Berechnung und der LCA sollen auch im eigenen Branch liegen, alles in einer App, aber in den anderen Branches nichts ändern.
+- **Vorgehen der KI:** Branches nur gelesen (`git fetch`), `LCA-Berechnung` (enthält `arbeitsbereich`) per Merge ohne Commit in diesen Branch geholt, Konflikte einzeln gelöst: `app.js` (eigenes Ereignis `flaechen` behalten, Export der Sanierung übernommen), `index.html` und `style.css` (neue Oberfläche mit drei Reitern, Module im Designsystem), Prompt-Log (beide Teile behalten, Herkunft gekennzeichnet), README.
+- **Fehler der KI bei der Arbeit:** Ein Befehl (`git checkout --theirs`) hat versehentlich die eigene `style.css` durch die fremde ersetzt; aus dem letzten Commit wiederhergestellt, danach alles neu angewendet.
+- **Prüfung:** Unit-Tests beider Seiten (Bauphysik, PDF, LCA gegen Excel), Browser-Tests, neuer Gesamttest `tests/integration.mjs` (Foto → Aufmaß 43,49 m² → Sanierung übernimmt die Wand und zählt die Tür nicht als Fenster → LCA zeigt Diagramme, keine Konsolenfehler).
+- **Nicht geprüft:** fachliche Richtigkeit der U-Wert- und LCA-Rechnung (liegt bei den jeweiligen Autoren; deren Tests laufen). Die anderen Branches wurden nicht verändert.

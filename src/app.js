@@ -4,7 +4,7 @@
   const G = window.Geometry;
   const $ = (id) => document.getElementById(id);
   const cv = $('cv'), ctx = cv.getContext('2d');
-  const COLORS = { calib: '#d9730d', facade: '#0b6bcb', window: '#1a8f4a', door: '#8b5a2b' };
+  const COLORS = { calib: '#ff9f0a', facade: '#0a84ff', window: '#30d158', door: '#c69c6d' };
   const LABEL = { calib: 'Maßstab', facade: 'Fassade', window: 'Fenster', door: 'Tür' };
 
   const S = {
@@ -87,6 +87,18 @@
     const aF = facades.reduce((a, s) => a + areaOf(s.pts), 0);
     const aW = wins.reduce((a, s) => a + areaOf(s.pts), 0);
     const ready = !!S.calib.H;
+    // Oberflächenzustand: Fortschrittsanzeige, Bildstatus, Maßstabs-Badge
+    document.body.classList.toggle('has-image', !!S.img);
+    const step = !S.img ? 1 : !ready ? 2 : !facades.length ? 3 : 4;
+    document.querySelectorAll('.steps li').forEach((li) => { const n = +li.dataset.s; li.classList.toggle('is-active', n === step); li.classList.toggle('is-done', n < step); });
+    const badge = $('scaleBadge'); let bd = null;
+    if (ready) {
+      const m = S.autoScale;
+      bd = m === 'est' ? ['warn', 'KI-Schätzung · ca. ±10–15 %'] : m === 'door' ? ['warn', 'Türhöhe angenommen · ca. ±10–13 %']
+        : m === 'width' ? ['ok', 'Breite gemessen · ca. ±4–5 %'] : S.calib.type === 'rect' ? ['ok', 'Referenzrechteck · Perspektive korrigiert']
+        : ['warn', 'Referenzstrecke · nur bei frontalem Foto'];
+    }
+    badge.hidden = !bd; if (bd) { badge.className = 'badge ' + bd[0]; badge.textContent = bd[1]; }
     $('rFacade').textContent = ready && facades.length ? fmt(aF) + ' m²' : '–';
     $('rWin').textContent = ready && wins.length ? fmt(aW) + ' m²' : '–';
     $('rCount').textContent = wins.length;
@@ -98,14 +110,14 @@
 
     $('sum').textContent = ready && facades.length ? `Wand netto ${fmt(aF - aW)} m²${S.autoScale === 'est' && S.scaleRange ? ' (≈ ' + fmt((aF - aW) * S.scaleRange.lo ** 2, 0) + '–' + fmt((aF - aW) * S.scaleRange.hi ** 2, 0) + ')' : ''} · Fassade ${fmt(aF)} m² · Öffnungen ${fmt(aW)} m² (${wins.length}) · Fensteranteil ${fmt(aF > 0 ? (aW / aF) * 100 : NaN, 1)} %` : '';
     if (S.img && !ready) warn.push('Noch kein Maßstab gesetzt – es werden keine Flächen berechnet.');
-    if (ready && S.autoScale === 'est') warn.push('Maßstab von der KI aus Referenzobjekten geschätzt (Spanne siehe oben). Mit gemessener Fassadenbreite genauer.');
+    if (ready && S.autoScale === 'est') warn.push('Der Maßstab ist aus Referenzobjekten geschätzt (Spanne siehe oben) und setzt ein frontales Foto voraus. Mit gemessener Fassadenbreite wird es genauer.');
     if (ready && S.autoScale === 'door') warn.push('Maßstab aus angenommener Türhöhe – Ergebnis ist nur eine Größenordnung. Mit gemessener Fassadenbreite genauer.');
-    if (ready && S.calib.type === 'line') warn.push('Referenzstrecke ohne Perspektivkorrektur: nur bei frontaler Aufnahme belastbar.');
+    if (ready && S.calib.type === 'line' && S.autoScale !== 'est') warn.push('Referenzstrecke ohne Perspektivkorrektur: nur bei frontaler Aufnahme belastbar.');
     if (ready && S.calib.type === 'rect' && G.selfIntersects(S.calib.pts)) warn.push('Referenzrechteck: Punkte nicht in Umlaufreihenfolge.');
     S.shapes.forEach((s, i) => { if (G.selfIntersects(s.pts)) warn.push(`${LABEL[s.kind]} ${nr(i)}: Polygon überschneidet sich selbst.`); });
     if (facades.length > 1) warn.push('Mehrere Fassadenflächen – es wird die Summe verwendet.');
     if (ready && aW > aF && facades.length) warn.push('Fensterfläche größer als Fassade – Eingabe prüfen.');
-    $('warnings').innerHTML = warn.map((w) => `<li>⚠ ${w}</li>`).join('');
+    $('warnings').innerHTML = warn.map((w) => `<li>${w}</li>`).join('');
 
     $('shapes').innerHTML = S.shapes.map((s, i) =>
       `<li><span style="color:${COLORS[s.kind]}">■</span> ${LABEL[s.kind]} ${nr(i)}: ${fmt(areaOf(s.pts))} m²
@@ -155,13 +167,12 @@
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
     if (closed) ctx.closePath();
-    if (fill && closed) { ctx.fillStyle = color + '33'; ctx.fill(); }
-    ctx.strokeStyle = color; ctx.lineWidth = Math.max(2, cv.width / 450); ctx.stroke();
+    if (fill && closed) { ctx.fillStyle = color + '2e'; ctx.fill(); }
+    ctx.strokeStyle = color; ctx.lineWidth = Math.max(2, cv.width / 520); ctx.lineJoin = 'round'; ctx.stroke();
     const r = Math.max(5, cv.width / 220);
-    pts.forEach((p, i) => {
+    pts.forEach((p) => {
       ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 7); ctx.fillStyle = color; ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = `${r * 1.6}px sans-serif`; ctx.textAlign = 'center';
-      ctx.fillText(String(i + 1), p[0], p[1] - r * 1.4);
+      ctx.lineWidth = Math.max(1.5, r / 3); ctx.strokeStyle = '#fff'; ctx.stroke();
     });
   }
   function draw() {
@@ -173,9 +184,11 @@
       drawPoly(s.pts, COLORS[s.kind], true, true);
       if (S.calib.H) {
         const c = s.pts.reduce((a, p) => [a[0] + p[0] / s.pts.length, a[1] + p[1] / s.pts.length], [0, 0]);
-        ctx.font = `bold ${Math.max(14, cv.width / 60)}px sans-serif`; ctx.textAlign = 'center';
-        ctx.lineWidth = 4; ctx.strokeStyle = '#000'; ctx.strokeText(fmt(areaOf(s.pts)) + ' m²', c[0], c[1]);
-        ctx.fillStyle = '#fff'; ctx.fillText(fmt(areaOf(s.pts)) + ' m²', c[0], c[1]);
+        const fs = Math.max(13, cv.width / 68), txt = fmt(areaOf(s.pts)) + ' m²';
+        ctx.font = `600 ${fs}px -apple-system, "SF Pro Text", Inter, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const w = ctx.measureText(txt).width + fs, h = fs * 1.7, x = c[0] - w / 2, y = c[1] - h / 2, rad = h / 2;
+        ctx.beginPath(); ctx.moveTo(x + rad, y); ctx.arcTo(x + w, y, x + w, y + h, rad); ctx.arcTo(x + w, y + h, x, y + h, rad); ctx.arcTo(x, y + h, x, y, rad); ctx.arcTo(x, y, x + w, y, rad); ctx.closePath();
+        ctx.fillStyle = 'rgba(20,20,22,.72)'; ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(txt, c[0], c[1] + 0.5); ctx.textBaseline = 'alphabetic';
       }
     });
     if (S.active) drawPoly(S.active.pts, COLORS[S.active.kind], false, false);
@@ -316,7 +329,7 @@
 
   async function runDetect() {
     if (!S.img) { setHint('Erst ein Foto laden.'); return; }
-    const btns = [$('auto'), $('snapBtn')]; btns.forEach((b) => (b.disabled = true)); setHint('KI analysiert das Foto …');
+    const btns = [$('auto'), $('snapBtn')]; btns.forEach((b) => (b.disabled = true)); document.body.classList.add('busy'); setHint('KI analysiert das Foto …');
     const t = Date.now();
     try {
       const im = downscaleToJpeg();
@@ -338,7 +351,7 @@
       recompute(); draw();
     } catch (e) {
       setHint('Automatische Erkennung nicht möglich: ' + e.message);
-    } finally { btns.forEach((b) => (b.disabled = false)); }
+    } finally { btns.forEach((b) => (b.disabled = false)); document.body.classList.remove('busy'); }
   }
   // Auto-Maßstab nachträglich ändern (Modus oder Länge), ohne die KI erneut zu fragen
   function reapplyScale() {
@@ -394,5 +407,14 @@
     $('refFacade').value = 60; $('refWin').value = (4 * 1.2 * 1.4).toFixed(2);
   });
 
+  // Leerer Zustand: große Schaltflächen lösen die Eingaben der Kopfzeile aus
+  [['emptySnap', 'snap'], ['emptyPick', 'file'], ['emptyDemo', 'demo']].forEach(([a, b]) => { $(a).addEventListener('click', () => $(b).click()); });
+  // Eingabe in einem Maßstabsfeld wählt die passende Option aus
+  [['autoW', 'width'], ['autoD', 'door']].forEach(([id, v]) => $(id).addEventListener('focus', () => {
+    const r = document.querySelector(`input[name=amode][value=${v}]`);
+    if (!r.checked) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
+  }));
+  // „Maßstab“ in der Werkzeugleiste öffnet den Bereich zum Setzen im Bild
+  document.querySelector('[data-tool=calib]').addEventListener('click', () => { $('manual').open = true; });
   draw();
 })();

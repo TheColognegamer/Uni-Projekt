@@ -13,7 +13,7 @@ const port = srv.address().port;
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1300, height: 900 } });
 const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
 await pg.goto(`http://localhost:${port}/`);
-await pg.click('#demo'); await pg.waitForFunction(() => window.__demo);
+await pg.click('#emptyDemo'); await pg.waitForFunction(() => window.__demo);
 const demo = await pg.evaluate(() => window.__demo);
 const box = await pg.locator('#cv').boundingBox();
 const toScr = (p) => [box.x + p[0] * box.width / 1200, box.y + p[1] * box.height / 800];

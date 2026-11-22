@@ -110,3 +110,9 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **KI-Ergebnis:** Schnittstellendoku des Sanierungsmoduls gelesen (`docs/schnittstelle-sanierung.md` auf `claude/arbeitsbereich`), das Ereignis `flaechen` in `updateResults()` ergänzt (Felder wie dort), Türen als eigene Art eingeführt, Zusatzfelder (Türen, brutto, Maßstabsart, Spanne), Doku `docs/schnittstelle-aufmass.md`, Test des Ereignisses in `tests/auto-mock.mjs`.
 - **Auffälligkeit:** In der älteren Kopie von `app.js` im anderen Branch wurden Türen (von der KI als „window“ gesetzt) mit in `fenster` übergeben; sie würden dort als Fenster bewertet. Abweichung ist in der Doku vermerkt und muss mit dem Sanierungsmodul abgestimmt werden.
 - **Nicht geprüft:** Zusammenspiel mit dem echten Sanierungsmodul (anderer Branch, nicht ausgeführt).
+
+### P-11 · Einheitliches Design im Apple-Stil · 22.11.2026 · Nicolai
+- **Prompt (sinngemäß):** Die App soll ein einheitliches Corporate-Design im Apple-Stil bekommen, sehr hochwertig und nutzerfreundlich.
+- **KI-Ergebnis:** Gemeinsames Designsystem `src/design.css` (Tokens, Bausteine, Hell/Dunkel), neue Oberfläche mit Fortschrittsanzeige, großem Ergebnis, Maßstabsauswahl als Liste, Leer- und Ladezustand, Badge zur Maßstabsqualität, mobiler Ansicht; Doku `docs/design-system.md`. Alle Element-IDs bleiben erhalten, Tests laufen weiter.
+- **Auffälligkeiten (per Screenshot gefunden und behoben):** Handy-Kopfzeile mit falsch platzierter Schaltfläche, abgeschnittener Leerzustand, unsichtbare Schaltflächen auf hellem Grund, doppelte Hinweise.
+- **Nicht geprüft:** echte Geräte (nur Headless-Chromium bei 390 und 1360 px, hell und dunkel), Bedienbarkeit durch Testpersonen.

@@ -18,7 +18,7 @@ try {
   }
 } catch { /* keine .env vorhanden: ok */ }
 const PORT = Number(process.env.PORT || 8000);
-const MOCK = process.env.MOCK === '1';
+const MOCK = process.env.MOCK === '1' || process.argv.includes('--mock'); // --mock funktioniert auch unter Windows
 const MODEL = process.env.DETECT_MODEL || 'claude-opus-5-5';
 const MAX_BODY = 12 * 1024 * 1024;
 const ACCESS_CODE = process.env.ACCESS_CODE || '';            // optional: schützt /api/detect auf gehosteten Servern

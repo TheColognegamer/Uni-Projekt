@@ -15,6 +15,8 @@ Die Expertenansicht enthält alle Module, vier Reiter:
 Datenfluss: Aufmaß ─`flaechen`→ Sanierung ─`sanierung`→ LCA und Kosten/Empfehlung. Schnittstellen: `docs/schnittstelle-aufmass.md`, `docs/schnittstelle-sanierung.md`, `docs/schnittstelle-kosten.md`. Gemeinsames Aussehen: `src/design.css` (`docs/design-system.md`).
 Hinweis: Die Module Sanierung und LCA wurden aus den Branches `claude/arbeitsbereich` und `LCA-Berechnung` **kopiert** (nur gelesen, dort wurde nichts verändert). Weiterentwicklung dort muss hier nachgezogen werden.
 
+**Für das Team:** Schritt-für-Schritt-Anleitung zum Ausprobieren in `docs/anleitung-team.md`.
+
 ## Starten
 ```bash
 npm install && npm start      # http://localhost:8000 (mit KI-Erkennung, siehe unten)

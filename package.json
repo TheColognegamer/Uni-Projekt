@@ -5,7 +5,7 @@
   "description": "Prototyp: Fassadenaufmaß per Foto mit KI-Vorschlägen (Gruppe 2)",
   "scripts": {
     "start": "node server.mjs",
-    "start:mock": "MOCK=1 node server.mjs",
+    "start:mock": "node server.mjs --mock",
     "test": "node tests/geometry.test.js && node tests/bauphysik.test.js && node tests/pdf.test.js && node tests/lca.test.js && node tests/kosten.test.js"
   },
   "dependencies": {

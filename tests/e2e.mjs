@@ -11,7 +11,8 @@ const srv = http.createServer((q, r) => {
 }).listen(0);
 const port = srv.address().port;
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1300, height: 900 } });
-const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); pg.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
+const errs = []; pg.on('pageerror', (e) => errs.push(e.message)); // Der Statusaufruf /api/status liefert auf diesem reinen Datei-Server 404: erwartet (Demo-Modus ohne Server)
+pg.on('console', (m) => m.type() === 'error' && !m.location().url.endsWith('/api/status') && errs.push(m.text()));
 await pg.goto(`http://localhost:${port}/?experte=1`);
 await pg.click('#emptyDemo'); await pg.waitForFunction(() => window.__demo);
 const demo = await pg.evaluate(() => window.__demo);

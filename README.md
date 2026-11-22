@@ -8,8 +8,9 @@ Alles ist in diesem Branch zusammengeführt, drei Reiter:
 | **Aufmaß** | Foto → Maßstab/Entzerrung → Fassade, Fenster, Türen → m² (mit KI-Vorschlag) | `src/app.js`, `src/geometry.js`, `server.mjs` |
 | **Sanierung** | Bestandswand (U-Wert), Dämmdicke nach GModG, Fenster, Brandschutz, Zusammenfassung/PDF | `src/bauphysik.js`, `src/sanierung-ui.js`, `src/pdf*.js` |
 | **LCA** | GWP-Vergleich WDVS/VHF/Fenster für 30 und 50 Jahre (ÖKOBAUDAT) | `src/lca*.js` |
+| **Empfehlung** | Kosten (Excel), Qualität, Treibhausgase; drei Empfehlungen: Premium, Preis-Leistung, Umweltfreundlichste | `src/kosten*.js` |
 
-Datenfluss: Aufmaß ─`flaechen`→ Sanierung ─`sanierung`→ LCA (→ Kosten). Schnittstellen: `docs/schnittstelle-aufmass.md`, `docs/schnittstelle-sanierung.md`. Gemeinsames Aussehen: `src/design.css` (`docs/design-system.md`).
+Datenfluss: Aufmaß ─`flaechen`→ Sanierung ─`sanierung`→ LCA und Kosten/Empfehlung. Schnittstellen: `docs/schnittstelle-aufmass.md`, `docs/schnittstelle-sanierung.md`, `docs/schnittstelle-kosten.md`. Gemeinsames Aussehen: `src/design.css` (`docs/design-system.md`).
 Hinweis: Die Module Sanierung und LCA wurden aus den Branches `claude/arbeitsbereich` und `LCA-Berechnung` **kopiert** (nur gelesen, dort wurde nichts verändert). Weiterentwicklung dort muss hier nachgezogen werden.
 
 ## Starten
@@ -63,6 +64,9 @@ Diagramm aller Varianten, Gesamtfassade per Dropdown, Vergleich zweier Konfigura
 node tests/bauphysik.test.js  # U-Werte und Dämmdicken gegen Handrechnung
 node tests/pdf.test.js        # PDF-Bericht (Aufbau, Zeichensatz, Querverweise)
 node tests/lca.test.js        # LCA-Rechnung gegen die Excel (22 Varianten) + Holz-Alu-Fenster gegen Handrechnung, 30/50 Jahre
+node tests/kosten.test.js     # Kosten und Empfehlung gegen die Excel (Blatt LCC) und Invarianten
+node tests/szenarien.test.js  # fünf erfundene Gebäude: Handrechnung, Invarianten, Größenordnungen (Kette U-Wert → LCA)
+node tests/szenarien-ui.mjs   # dieselben Szenarien durch die Oberfläche, Abgleich mit dem Rechenkern
 node tests/geometry.test.js   # Geometrie-Kern
 node tests/e2e.mjs            # Browser-Smoke-Test (benötigt Playwright)
 node tests/integration.mjs <foto.png> [bildordner]   # Gesamtweg Aufmaß → Sanierung → LCA im Browser (Attrappe)

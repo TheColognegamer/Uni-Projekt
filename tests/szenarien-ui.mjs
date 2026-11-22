@@ -3,7 +3,7 @@
 // Aufruf: node tests/szenarien-ui.mjs
 import { createRequire } from 'module'; import { spawn } from 'node:child_process';
 const require = createRequire(import.meta.url);
-const { chromium } = require('playwright'); const B = require('../src/bauphysik.js');
+const { chromium } = require('playwright'); const B = require('../src/bauphysik.js'); const KO = require('../src/kosten.js');
 const S = [
   { id: 'S1', baujahr: 1905, wand: 'vollstein', dicke: 38, geschosse: 5, wandNetto: 410, fenster: Array(36).fill({ b: 1.10, h: 1.60 }) },
   { id: 'S2', baujahr: 1956, wand: 'lochstein', dicke: 36.5, geschosse: 3, wandNetto: 222.5, fenster: [...Array(24).fill({ b: 1.35, h: 1.40 }), ...Array(6).fill({ b: 1.45, h: 0.80 }), ...Array(3).fill({ b: 1.00, h: 0.80 })] },
@@ -51,7 +51,13 @@ for (const s of S) {
   ok(kp.some((t) => t.includes(fmt1(aF) + ' m²')), `${s.id}: LCA zeigt Fensterfläche ${fmt1(aF)} nicht (${kp[1]})`);
   ok(kp.some((t) => t.includes(gk.kurz)), `${s.id}: LCA zeigt Gebäudeklasse ${gk.kurz} nicht`);
   ok(await pg.$$eval('#tabLca svg.chart', (x) => x.length) >= 1, `${s.id}: LCA ohne Diagramm`);
-  console.log(`${s.id}  Oberfläche = Rechenkern: Wand U ${ui.wand.u.toFixed(2)}, MW-WDVS ${(ui.varianten[0].d * 100).toFixed(0)} cm, GK ${gk.kurz}, LCA-Kennzahlen: ${kp.slice(0, 2).map((t) => t.replace(/\(aus Aufmaß\)/, '').trim()).join(' | ')}`);
+  await pg.click('.tabs [data-tab=tabEmpfehlung]'); await pg.waitForTimeout(400);
+  const emp = await pg.evaluate(() => { const r = window.KostenUI.ergebnis(), e = r.empfehlung; return { p: e.premium && e.premium.id, pl: e.preisLeistung && e.preisLeistung.id, u: e.umwelt && e.umwelt.id, lcc: r.kandidaten.map((k) => [k.id, k.lcc.gesamt, k.gwp[50].gesamt]) }; });
+  const kE = KO.empfehlung(KO.kandidaten({ bezugsflaeche_m2: s.wandNetto, varianten: kern }), { zeitraum: 50 }), kK = KO.kandidaten({ bezugsflaeche_m2: s.wandNetto, varianten: kern });
+  ok(emp.p === kE.premium.id && emp.pl === kE.preisLeistung.id && emp.u === kE.umwelt.id, `${s.id}: Empfehlung UI (${emp.p}/${emp.pl}/${emp.u}) ≠ Kern (${kE.premium.id}/${kE.preisLeistung.id}/${kE.umwelt.id})`);
+  ok(emp.lcc.every(([id, lcc, gwp], i) => id === kK[i].id && near(lcc, kK[i].lcc.gesamt, 1e-6) && near(gwp, kK[i].gwp[50].gesamt, 1e-6)), `${s.id}: Kosten/GWP der Oberfläche weichen vom Kern ab`);
+  ok(await pg.$$eval('#tabEmpfehlung .rec', (x) => x.length) === 3, `${s.id}: Empfehlungskarten fehlen`);
+  console.log(`${s.id}  Oberfläche = Rechenkern: Wand U ${ui.wand.u.toFixed(2)}, MW-WDVS ${(ui.varianten[0].d * 100).toFixed(0)} cm, GK ${gk.kurz}, Empfehlung ${emp.p} / ${emp.pl} / ${emp.u}; LCA-Kennzahlen: ${kp.slice(0, 2).map((t) => t.replace(/\(aus Aufmaß\)/, '').trim()).join(' | ')}`);
 }
 ok(!errs.length, 'Konsolenfehler: ' + errs.join(' | '));
 await b.close(); srv.kill();

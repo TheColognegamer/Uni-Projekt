@@ -158,3 +158,5 @@ footer.note { grid-column: 1 / -1; text-align: center; color: var(--fg-3); font-
 .item .t, .item .d { display: block; }
 
 @media (max-width: 600px) { .steps li:not(.is-active) > span { display: none; } .steps li { padding-right: 8px; } .steps li.is-active { padding-right: 12px; } }
+
+@media (max-width: 600px) { .topbar .tabs button { padding: 0 6px; font-size: 14px; gap: 0; } }

@@ -98,3 +98,9 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Annahmen mit Unsicherheit:** Traufhöhe +8,27 m über EG (Plan-Kote; im Plan wirkt die Wandoberkante teils bei etwa +7,9 bis +8,0 m), Geländehöhen aus Kotenangaben; Bruttoflächen deshalb ±2–3 %.
 - **Auffälligkeit der Fotos:** durchgehend schräg und weitwinklig (keine frontale Aufnahme); die Referenzstrecke der App setzt frontal voraus.
 - **Dateien:** `docs/testdaten/…`, `tests/compare_ground_truth.mjs`, `tests/fixtures/…`.
+
+### P-09 · Nordseite rechts vom Fallrohr gegen Plan · 22.11.2026 · Nicolai
+- **Prompt (sinngemäß):** Foto der Gartenseite nehmen, nur den Teil ab dem Fallrohr nach rechts (9 Fenster), mit den Plänen vergleichen.
+- **Vorgehen der KI:** Fensterlagen aus der Plan-Geometrie, Ecken im Foto von Hand abgelesen, Perspektivkorrektur über die Lagen der vier äußeren OG-Fenster, Vergleich der Fenstermaße. Skript: `docs/testdaten/testgebaeude-a/nord_rechts_perspektive.py`.
+- **Ergebnis (orientierend):** Mit Perspektivkorrektur liegt der OG-Mittelwert bei 1,88 m² (Plan 1,88 m²), einzelne Fenster −5 % bis +6 %, Ablesefehler ±3 %. Ohne Korrektur (Frontalannahme) unterscheiden sich die Pixelflächen gleicher Fenster um den Faktor 1,68 (±17 %); ein Maßstab aus einem Fenster ergibt −41 % bis +49 % bei den anderen.
+- **Grenzen:** Das prüft die Geometrie, **nicht** die KI-Erkennung der App. Eckpunkte von der KI nach Augenmaß gesetzt (±2 px), Linsenverzeichnung nicht korrigiert, Plan-Raster als Maßstab (die App hätte ihn nicht), ein Foto, neun Fenster. Breite (−3 bis −7 %) und Höhe (+2 bis +8 %) weichen entgegengesetzt ab (Außenkante der Fensterfaschen bzw. Fensterbank), die Fläche gleicht das aus.

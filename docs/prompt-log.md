@@ -89,3 +89,12 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Annahmen im Prompt (zu prüfen):** Türhöhe 2,0–2,15 m, Garagentorhöhe 2,0–2,25 m, 3 NF- bzw. 4 DF-Schichten ≈ 25 cm, Stufenhöhe 0,15–0,19 m. Diese Werte stammen aus dem Modellwissen der KI und sind **nicht** gegen Normen oder Herstellerangaben geprüft; vor Verwendung im Paper mit Quellen belegen.
 - **Prüfung:** Test mit Attrappe (Schätzung, Spanne, Referenzliste, Wechsel zu Breite/Tür) grün. **Nicht geprüft:** wie gut die echte KI Referenzstrecken setzt und wie nah die Schätzung an gemessenen Maßen liegt.
 - **Hypothese für das Paper:** Der Fehler der Maßstabsschätzung (nicht der Flächenerkennung) dominiert die Gesamtunsicherheit; mit gemessener Referenz vergleichen.
+
+### P-08 · Validierung gegen Bestandspläne (Testgebäude A) · 22.11.2026 · Nicolai
+- **Ziel / Prompt (sinngemäß):** Fotos eines echten Hauses und vier Ansichtspläne (Nord, Süd, Ost, West) bereitgestellt; „check die Abweichung zwischen Bild und Bauplänen, damit man die Fehlertoleranz bestimmen kann“.
+- **Was die KI getan hat:** Plangeometrie aus den PDF-Vektordaten ausgelesen (Fensterrechtecke, Text war in Linien gewandelt), Zahlen mit den gerenderten Plänen abgeglichen, Foto-Seiten den Ansichten zugeordnet, Referenzdatei und Auswertungsskript erstellt.
+- **Was die KI nicht getan hat:** Die Fotos wurden **nicht** von der App/dem Modell ausgewertet (kein API-Zugriff in der KI-Umgebung). Eine Abweichung Foto ↔ Plan wurde daher **nicht** berechnet.
+- **Fehler/Korrekturen:** (1) Die Vektor-Rechtecke ergaben zu wenige Fenster (Nord 22 statt 24 große, 7 statt 9 Streifenfenster); Zählung deshalb am gerenderten Plan geprüft. (2) In der Referenztabelle fehlte bei Süd die Haustür in der Öffnungssumme (Konsistenz mit dem Skript), korrigiert.
+- **Annahmen mit Unsicherheit:** Traufhöhe +8,27 m über EG (Plan-Kote; im Plan wirkt die Wandoberkante teils bei etwa +7,9 bis +8,0 m), Geländehöhen aus Kotenangaben; Bruttoflächen deshalb ±2–3 %.
+- **Auffälligkeit der Fotos:** durchgehend schräg und weitwinklig (keine frontale Aufnahme); die Referenzstrecke der App setzt frontal voraus.
+- **Dateien:** `docs/testdaten/…`, `tests/compare_ground_truth.mjs`, `tests/fixtures/…`.

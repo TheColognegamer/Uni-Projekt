@@ -1,0 +1,7 @@
+{ "bild": "beispiel.jpg", "massstab": { "typ": "line", "laenge_m": 2.1 },
+  "flaechen": [
+    { "art": "facade", "flaeche_m2": 109.0 },
+    { "art": "window", "flaeche_m2": 1.72 },
+    { "art": "window", "flaeche_m2": 2.01 },
+    { "art": "window", "flaeche_m2": 1.95 },
+    { "art": "window", "flaeche_m2": 1.38 } ] }

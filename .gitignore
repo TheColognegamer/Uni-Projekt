@@ -1,2 +1,6 @@
 node_modules/
 .env
+
+# Testdaten: keine Pläne und keine Fotos mit Personen committen
+docs/testdaten/**/*.pdf
+docs/testdaten/**/fotos/

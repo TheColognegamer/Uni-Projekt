@@ -1,0 +1,159 @@
+{
+  "name": "Testgebäude A",
+  "beschreibung": "Dreigeschossiger Zeilenbau mit ausgebautem Dachgeschoss und Satteldach, Köln. Referenzmaße aus vier Bestandsansichten (Nord, Süd, Ost, West, M 1:100, Stand 03/2026).",
+  "hinweis_rechte": "Quelle sind Pläne eines Dritten (Bauherrschaft öffentlich). Pläne und Fotos mit Personen nicht ins Repo/Paper übernehmen, bevor Nutzungsrechte geklärt sind. Hier stehen nur abgeleitete Maße.",
+  "genauigkeit_referenz": "Maße aus Plan: Fenster auf ±1 cm (CAD-Geometrie, 1,33–1,35 × 1,36–1,41 m), Wandhöhen ±0,1–0,2 m (Traufe und Geländehöhe aus Höhenkoten gelesen). Bruttoflächen daher etwa ±2–3 %.",
+  "gebaeude": {
+    "laenge_m": 30.2,
+    "tiefe_m": 11.0,
+    "traufe_ueber_EG_m": 8.27,
+    "first_ueber_EG_m": 11.6,
+    "geschosshoehen_OKFF_m": {
+      "EG": 0.0,
+      "OG1": 2.77,
+      "OG2": 5.51,
+      "DG": 8.27
+    }
+  },
+  "konvention": "Fensterfläche = Außenmaß des Fensters laut Plan (Fensterbreite × -höhe, Rahmen eingeschlossen, ohne Laibung/Fensterbank). Wandfläche brutto = Länge × (Traufe über EG + Gelände unter EG) bzw. bei Giebel plus Dreieck bis First.",
+  "fassaden": {
+    "nord": {
+      "bezeichnung": "Gartenseite, Hintereingang mit Glasvordach, Treppenhaus mit je drei Streifenfenstern",
+      "breite_m": 30.2,
+      "gelaende_unter_EG_m": 0.91,
+      "brutto_m2": 277.2,
+      "oeffnungen": [
+        {
+          "typ": "fenster_gross",
+          "anzahl": 24,
+          "breite_m": 1.35,
+          "hoehe_m": 1.4,
+          "flaeche_m2": 1.89
+        },
+        {
+          "typ": "streifenfenster_breit",
+          "anzahl": 6,
+          "breite_m": 1.45,
+          "hoehe_m": 0.8,
+          "flaeche_m2": 1.16
+        },
+        {
+          "typ": "streifenfenster_schmal",
+          "anzahl": 3,
+          "breite_m": 1.0,
+          "hoehe_m": 0.8,
+          "flaeche_m2": 0.8
+        },
+        {
+          "typ": "kellerfenster",
+          "anzahl": 12,
+          "breite_m": 0.6,
+          "hoehe_m": 0.35,
+          "flaeche_m2": 0.21
+        }
+      ],
+      "oeffnungsflaeche_ohne_keller_m2": 54.72,
+      "oeffnungsanteil_ohne_keller": 0.197
+    },
+    "sued": {
+      "bezeichnung": "Straßen-/Eingangsseite, Haupteingang mit Vordach, Treppenhaus mit je zwei Fenstern",
+      "breite_m": 30.2,
+      "gelaende_unter_EG_m": 0.92,
+      "brutto_m2": 277.5,
+      "oeffnungen": [
+        {
+          "typ": "fenster_gross",
+          "anzahl": 30,
+          "breite_m": 1.35,
+          "hoehe_m": 1.4,
+          "flaeche_m2": 1.89
+        },
+        {
+          "typ": "treppenhausfenster",
+          "anzahl": 4,
+          "breite_m": 1.1,
+          "hoehe_m": 1.4,
+          "flaeche_m2": 1.54
+        },
+        {
+          "typ": "haustuer_mit_seitenteilen",
+          "anzahl": 1,
+          "breite_m": 2.25,
+          "hoehe_m": 2.15,
+          "flaeche_m2": 4.84
+        },
+        {
+          "typ": "kellerfenster",
+          "anzahl": 17,
+          "breite_m": 0.6,
+          "hoehe_m": 0.35,
+          "flaeche_m2": 0.21
+        }
+      ],
+      "oeffnungsflaeche_ohne_keller_m2": 67.7,
+      "oeffnungsanteil_ohne_keller": 0.244
+    },
+    "west": {
+      "bezeichnung": "Giebelseite",
+      "breite_m": 11.0,
+      "gelaende_unter_EG_m": 0.95,
+      "brutto_m2": 118.0,
+      "oeffnungen": [
+        {
+          "typ": "fenster_gross",
+          "anzahl": 3,
+          "breite_m": 1.4,
+          "hoehe_m": 1.34,
+          "flaeche_m2": 1.88
+        },
+        {
+          "typ": "dachfenster_giebel",
+          "anzahl": 1,
+          "breite_m": 1.24,
+          "hoehe_m": 1.0,
+          "flaeche_m2": 1.24
+        },
+        {
+          "typ": "kellerfenster",
+          "anzahl": 3,
+          "breite_m": 0.6,
+          "hoehe_m": 0.35,
+          "flaeche_m2": 0.21
+        }
+      ],
+      "oeffnungsflaeche_ohne_keller_m2": 6.88,
+      "oeffnungsanteil_ohne_keller": 0.058
+    },
+    "ost": {
+      "bezeichnung": "Giebelseite",
+      "breite_m": 11.0,
+      "gelaende_unter_EG_m": 0.81,
+      "brutto_m2": 117.0,
+      "oeffnungen": [
+        {
+          "typ": "fenster_gross",
+          "anzahl": 3,
+          "breite_m": 1.34,
+          "hoehe_m": 1.4,
+          "flaeche_m2": 1.88
+        },
+        {
+          "typ": "dachfenster_giebel",
+          "anzahl": 1,
+          "breite_m": 1.0,
+          "hoehe_m": 1.16,
+          "flaeche_m2": 1.16
+        },
+        {
+          "typ": "kellerfenster",
+          "anzahl": 4,
+          "breite_m": 0.6,
+          "hoehe_m": 0.35,
+          "flaeche_m2": 0.21
+        }
+      ],
+      "oeffnungsflaeche_ohne_keller_m2": 6.8,
+      "oeffnungsanteil_ohne_keller": 0.058
+    }
+  }
+}

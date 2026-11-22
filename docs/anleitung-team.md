@@ -35,19 +35,21 @@ git clone https://github.com/TheColognegamer/Uni-Projekt.git
 cd Uni-Projekt
 git checkout claude/relaxed-heisenberg-93x7ty
 npm install
-npm run start:mock
+npm start
 ```
 Dann im Browser `http://localhost:8000` öffnen.
 
-**Wichtig zum Testmodus:** `start:mock` braucht keinen Schlüssel, die „Erkennung“ liefert aber **feste Beispielwerte** für das Foto `hausfassade-nachher`. Damit lässt sich der ganze Ablauf anschauen, die Erkennung selbst aber nicht beurteilen. Im Bild steht dann „Testmodus“.
+**Ohne API-Schlüssel: Demo-Modus.** Das ist der Normalfall für alle, die nur reinschauen wollen. Die App erkennt selbst, dass kein Schlüssel da ist, und zeigt „Demo-Modus“. Mit **„Beispielhaus ansehen“** läuft der ganze Ablauf durch: Angaben machen, drei Empfehlungen bekommen, Expertenansicht öffnen. Das Beispielhaus ist ein eingebautes Musterbild mit fest vorgegebenen Flächen, keine echte Erkennung. Eigene Fotos lassen sich ohne Schlüssel nicht automatisch auswerten, die App erklärt das verständlich. Man kann sie in der Expertenansicht von Hand vermessen.
 
-**Mit echter KI-Erkennung (optional)**
+Der Demo-Modus braucht nicht einmal den Server: `python3 -m http.server 8000` im Projektordner reicht auch zum Anschauen.
+
+**Mit echter KI-Erkennung (optional, nur wenn ihr eigene Fotos auswerten wollt)**
 1. Einen API-Schlüssel auf console.anthropic.com erstellen (kostet wenige Cent pro Foto).
 2. Im Projektordner eine Datei `.env` anlegen mit dieser einen Zeile (Schlüssel einsetzen, keine Anführungszeichen, keine Leerzeichen). Windows: ohne `.txt`-Endung speichern, im Editor „Alle Dateien“ wählen:
    ```
    ANTHROPIC_API_KEY=sk-ant-...
    ```
-3. `npm start` statt `npm run start:mock`.
+3. `npm start` (neu starten). Im Terminal steht dann `API-Key: gesetzt`, und eigene Fotos werden automatisch ausgewertet.
 
 Der Schlüssel gehört nur in die `.env` auf dem eigenen Rechner. Nie weitergeben, nie ins Repo committen (die Datei ist schon ausgeschlossen).
 

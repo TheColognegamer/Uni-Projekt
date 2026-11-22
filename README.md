@@ -33,7 +33,8 @@ Der Button „Automatisch erkennen (KI)“ schickt das Foto an einen kleinen Ser
 npm install
 cp .env.example .env                    # dann in .env den Key eintragen (wird nie committet)
 npm start                               # http://localhost:8000
-npm run start:mock                      # nur Oberfläche testen, feste Beispielwerte, KEINE echte Erkennung
+npm start                               # ohne Schlüssel: Demo-Modus (Beispielhaus), mit Schlüssel in .env: echte Erkennung
+npm run start:mock                      # Entwicklung/Tests: feste Beispielwerte für ein bestimmtes Foto, KEINE echte Erkennung
 ```
 Der Maßstab bleibt Handarbeit (Schritt 1). Der Export enthält den ursprünglichen KI-Vorschlag (`ki_vorschlag`) neben der korrigierten Fassung, um die Korrekturen auswerten zu können.
 ### Am Handy nutzen

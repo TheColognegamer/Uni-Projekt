@@ -112,6 +112,10 @@ const json = (res, status, obj) => { res.writeHead(status, { 'content-type': 'ap
 http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
+    if (req.method === 'GET' && url.pathname === '/api/status') {
+      // ki: eigene Fotos können ausgewertet werden (echter Schlüssel oder Attrappe). Sonst läuft die App im Demo-Modus (nur Beispielhaus).
+      return json(res, 200, { ki: MOCK || !!process.env.ANTHROPIC_API_KEY, modus: MOCK ? 'attrappe' : process.env.ANTHROPIC_API_KEY ? 'ki' : 'demo' });
+    }
     if (req.method === 'POST' && url.pathname === '/api/detect') {
       if (ACCESS_CODE && req.headers['x-access-code'] !== ACCESS_CODE) return json(res, 401, { error: 'Zugangscode fehlt oder falsch.' });
       const now = Date.now(); hits = hits.filter((t) => now - t < 3600e3);
@@ -138,7 +142,7 @@ http.createServer(async (req, res) => {
     for (const i of list || []) if (i.family === 'IPv4' && !i.internal) console.log(`Am Handy (gleiches WLAN): http://${i.address}:${PORT}`);
   if (!MOCK) {
     const k = process.env.ANTHROPIC_API_KEY || '';
-    if (!k) console.log('API-Key: FEHLT (siehe README: .env anlegen)');
+    if (!k) console.log('Demo-Modus: kein API-Schlüssel gesetzt. Das Beispielhaus funktioniert, eigene Fotos nicht (Schlüssel siehe docs/anleitung-team.md).');
     else {
       console.log(`API-Key: gesetzt, beginnt mit "${k.slice(0, 7)}", Länge ${k.length}`);
       if (!k.startsWith('sk-ant-')) console.log('  WARNUNG: Ein Anthropic-Key beginnt mit "sk-ant-". Das hier sieht nicht danach aus.');

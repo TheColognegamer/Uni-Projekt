@@ -87,3 +87,7 @@ body:not(.experte) .topbar-in { min-height: 56px; }
   .k-hero .btn-lg { width: 100%; } .k-cta { flex-direction: column; }
   .k-form h2 { font-size: 24px; }
 }
+
+.k-hero > p.k-demo { display: inline-block; margin: 22px auto 0; padding: 9px 16px; border-radius: var(--r-m); background: var(--warn-soft); color: var(--warn); font-size: 14px; font-weight: 500; max-width: 34em; line-height: 1.4; }
+.k-demo-modus #kBeispiel { order: -1; }
+.k-hero { text-align: center; }

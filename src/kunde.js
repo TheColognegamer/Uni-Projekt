@@ -21,7 +21,16 @@
 
   // ---------- Zustand ----------
   const Q = { baujahr: 1960, geschosse: 3, wand: 'mauerwerk', breite: null };
-  let schritt = 'start', gesehenBusy = false, breitePflicht = false;
+  let schritt = 'start', gesehenBusy = false, breitePflicht = false, ki = true;
+
+  // Ohne KI-Schlüssel (oder ohne Server) läuft die App im Demo-Modus: nur das Beispielhaus lässt sich auswerten.
+  fetch('/api/status').then((r) => (r.ok ? r.json() : null)).catch(() => null).then((j) => {
+    ki = !!(j && j.ki);
+    $('kDemoHinweis').hidden = ki; root.classList.toggle('k-demo-modus', !ki);
+    $('kBeispiel').className = ki ? 'btn btn-quiet btn-lg' : 'btn btn-primary btn-lg';
+    $('kSnap').className = ki ? 'btn btn-primary btn-lg' : 'btn btn-lg';
+    if (!ki) $('kSnap').lastChild.textContent = 'Eigenes Foto aufnehmen';
+  });
 
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const eur = (x) => Math.round(x / 10) * 10 >= 1000 ? (Math.round(x / 100) * 100).toLocaleString('de-DE') + ' €' : Math.round(x).toLocaleString('de-DE') + ' €';
@@ -38,6 +47,9 @@
   // ---------- Schritt 1: Foto ----------
   $('kSnap').addEventListener('click', () => $('snap').click());
   $('kPick').addEventListener('click', () => $('file').click());
+  const beispiel = () => { zeige('analyse'); window.AufmassUI.beispielhaus().then(() => nachAnalyse()); };
+  $('kBeispiel').addEventListener('click', beispiel);
+  $('kFehlerBeispiel').addEventListener('click', beispiel);
   // Aufnahmephase: läuft vor dem Handler in app.js, der das Dateifeld direkt nach dem Laden leert
   document.addEventListener('change', (e) => {
     if ((e.target.id === 'snap' || e.target.id === 'file') && e.target.files.length && !document.body.classList.contains('experte')) { gesehenBusy = false; zeige('analyse'); }
@@ -53,7 +65,7 @@
     if (st.fehler || !st.fassade) { fehler(st.fehler); return; }
     breitePflicht = !st.massstabOk;
     $('kBreitePflicht').hidden = !breitePflicht;
-    $('kMock').hidden = !st.mock;
+    $('kMock').hidden = !st.mock; $('kMock').textContent = st.demo ? 'Beispielhaus: Flächen sind vorgegeben' : 'Testmodus: Beispielwerte';
     pruefeFormular();
     zeige('fragen');
     vorschau();
@@ -61,7 +73,8 @@
 
   function fehler(grund) {
     const g = (grund || '').toLowerCase();
-    $('kFehlerText').textContent = !grund ? 'Auf dem Foto konnten wir keine Hauswand erkennen. Bitte ein Foto machen, auf dem die ganze Wand zu sehen ist.'
+    $('kFehlerText').textContent = !ki ? 'Für eigene Fotos braucht die App einen KI-Schlüssel. Sie können das Beispielhaus ansehen oder in der Expertenansicht von Hand vermessen.'
+      : !grund ? 'Auf dem Foto konnten wir keine Hauswand erkennen. Bitte ein Foto machen, auf dem die ganze Wand zu sehen ist.'
       : /key|schl|authent|401|503|server|fetch|network|load failed|nicht erreichbar/.test(g) ? 'Die automatische Erkennung ist gerade nicht erreichbar. Sie können das Foto in der Expertenansicht von Hand vermessen.'
         : 'Das Foto konnte nicht ausgewertet werden. Bitte versuchen Sie ein anderes Foto.';
     zeige('fehler');
@@ -170,12 +183,13 @@
   function ergebnis(erg) {
     const e = erg.empfehlung, st = window.AufmassUI.status(), san = window.SanierungUI.ergebnis();
     const genau = st.art === 'width' ? 'ca. ±5 %' : 'ca. ±15 %';
+    const fuss = st.demo ? 'Beispielrechnung für ein Musterhaus mit vorgegebenen Flächen, kein echtes Foto. Für Ihr Haus brauchen Sie ein eigenes Foto.' : `Richtwerte, netto, Preisstand 2026 für Köln. Die Genauigkeit der Flächen liegt bei ${genau}. Für einen verbindlichen Preis brauchen Sie ein Angebot.`;
     const wand = { mauerwerk: 'Mauerwerk', zweischalig: 'zweischaliges Mauerwerk', holz: 'Holz oder Fachwerk' }[Q.wand] || 'Mauerwerk';
     $('kErgebnis').innerHTML = `
       <div class="k-kopf"><h2>Unsere Empfehlung für Ihr Haus</h2>
         <p>Für ${num(san.bezugsflaeche_m2)} m² Außenwand, Baujahr ${Q.baujahr}, ${Q.geschosse} Geschosse, ${wand}. Fenster sind nicht enthalten.</p></div>
       <div class="k-cards">${karten(e)}</div>
-      <p class="k-fuss">Richtwerte, netto, Preisstand 2026 für Köln. Die Genauigkeit der Flächen liegt bei ${genau}. Für einen verbindlichen Preis brauchen Sie ein Angebot.</p>
+      <p class="k-fuss">${fuss}</p>
       <div class="k-aktionen"><button type="button" class="btn" id="kAendern">Angaben ändern</button><button type="button" class="btn" id="kNeu">Neues Foto</button><button type="button" class="btn btn-quiet" id="kDetails">Alle Zahlen ansehen</button></div>`;
     $('kAendern').addEventListener('click', () => zeige('fragen'));
     $('kNeu').addEventListener('click', () => { $('snap').value = ''; $('file').value = ''; zeige('start'); });

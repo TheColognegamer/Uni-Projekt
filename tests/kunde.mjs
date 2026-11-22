@@ -1,6 +1,6 @@
 // Einfacher Kundenablauf im Browser: Foto -> Angaben -> Empfehlung (Attrappe), Fehlerfall ohne Erkennung, Umschalter zur Expertenansicht.
 // Aufruf: node tests/kunde.mjs foto.png [bildordner]
-import { createRequire } from 'module'; import { spawn } from 'node:child_process';
+import { createRequire } from 'module'; import { spawn } from 'node:child_process'; import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const photo = process.argv[2], shots = process.argv[3];
 const start = async (port, env) => { const p = spawn('node', ['server.mjs'], { env: { ...process.env, PORT: String(port), ANTHROPIC_API_KEY: '', ...env }, stdio: 'pipe' }); await new Promise((r) => p.stdout.on('data', (d) => /App:/.test(d) && r())); return p; };
@@ -48,12 +48,32 @@ async function lauf(name, viewport, mobil) {
 }
 await lauf('desktop', { width: 1280, height: 860 }, false);
 await lauf('handy', { width: 390, height: 844 }, true);
-// Fehlerfall: Erkennung nicht verfügbar (kein Schlüssel, keine Attrappe)
-{ const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } }); const pg = await ctx.newPage();
-  await pg.goto('http://localhost:8211/'); await pg.setInputFiles('#snap', photo); await pg.waitForSelector('.k-step[data-step=fehler]:not([hidden])', { timeout: 15000 });
-  const text = await pg.textContent('#kFehlerText'); ok(/nicht erreichbar/.test(text) && !/ANTHROPIC|npm/.test(text), `Fehlertext ungeeignet für Kunden: ${text}`);
-  if (shots) await pg.screenshot({ path: `${shots}/kunde-fehler.png` });
-  await pg.click('#kNochmal'); ok(await sichtbar(pg, '.k-step[data-step=start]'), 'Zurück zum Start nach Fehler'); await ctx.close(); }
+// Demo-Modus: Server ohne Schlüssel (kein MOCK) -> Beispielhaus statt Fehler; eigene Fotos werden verständlich abgelehnt
+{ const ctx = await b.newContext({ viewport: { width: 1280, height: 860 } }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', (e) => errs.push(e.message));
+  await pg.goto('http://localhost:8211/'); await pg.waitForSelector('#kDemoHinweis:not([hidden])', { timeout: 5000 });
+  ok(await pg.$eval('#kBeispiel', (e) => e.classList.contains('btn-primary')), 'Demo: Beispielhaus nicht als Hauptaktion');
+  await pg.waitForTimeout(900); if (shots) await pg.screenshot({ path: `${shots}/kunde-demo-start.png` });
+  await pg.click('#kBeispiel'); await pg.waitForSelector('.k-step[data-step=fragen]:not([hidden])', { timeout: 8000 });
+  ok(/Beispielhaus/.test(await pg.textContent('#kMock')) && await sichtbar(pg, '#kMock'), 'Demo: Kennzeichnung Beispielhaus fehlt');
+  await pg.click('#kWeiter'); await pg.waitForSelector('.k-step[data-step=ergebnis]:not([hidden])');
+  const dk = await pg.$$eval('.k-card', (e) => e.length), dtext = await pg.$eval('.kunde', (e) => e.innerText);
+  ok(dk >= 2 && /Beispielrechnung/.test(dtext) && /5[01] m²/.test(dtext), `Demo-Ergebnis unvollständig (Karten ${dk}, Text: ${dtext.slice(0, 160)})`);
+  await pg.waitForTimeout(900); if (shots) await pg.screenshot({ path: `${shots}/kunde-demo-ergebnis.png`, fullPage: true });
+  await pg.click('#kNeu'); await pg.setInputFiles('#snap', photo); await pg.waitForSelector('.k-step[data-step=fehler]:not([hidden])', { timeout: 15000 });
+  const text = await pg.textContent('#kFehlerText'); ok(/Schlüssel/.test(text) && !/ANTHROPIC|npm|503/.test(text), `Demo: Fehlertext ungeeignet für Kunden: ${text}`);
+  ok(await sichtbar(pg, '#kFehlerBeispiel'), 'Demo: Beispielhaus-Knopf im Fehlerfall fehlt');
+  await pg.click('#kFehlerBeispiel'); await pg.waitForSelector('.k-step[data-step=fragen]:not([hidden])', { timeout: 8000 });
+  ok(!errs.length, 'Demo: Konsolenfehler ' + errs.join(' | ')); await ctx.close(); }
+// Ganz ohne Server (nur statische Dateien, z. B. python -m http.server): Demo läuft trotzdem
+{ const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+  const stat = http.createServer((q, r) => { const u = q.url.split('?')[0], f = path.join(process.cwd(), u === '/' ? 'index.html' : u);
+    fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); r.end(); } else { r.writeHead(200, { 'content-type': mime[path.extname(f)] || 'application/octet-stream' }); r.end(d); } }); }).listen(8213);
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', (e) => errs.push(e.message));
+  await pg.goto('http://localhost:8213/'); await pg.waitForSelector('#kDemoHinweis:not([hidden])', { timeout: 5000 });
+  await pg.click('#kBeispiel'); await pg.waitForSelector('.k-step[data-step=fragen]:not([hidden])', { timeout: 8000 });
+  await pg.click('#kWeiter'); await pg.waitForSelector('.k-step[data-step=ergebnis]:not([hidden])');
+  ok((await pg.$$eval('.k-card', (e) => e.length)) >= 2, 'Ohne Server: Demo liefert keine Karten');
+  ok(!errs.length, 'Ohne Server: Konsolenfehler ' + errs.join(' | ')); await ctx.close(); stat.close(); }
 await b.close(); srv.kill(); srv2.kill();
 console.log(`\n${n} Prüfungen, ${probs.length} Abweichungen`); if (probs.length) { console.log(probs.join('\n')); process.exit(1); }
 console.log('Kundenablauf OK');

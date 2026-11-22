@@ -391,7 +391,8 @@
   });
 
   // ---------- Demo: synthetische, perspektivisch verzerrte Fassade mit bekannter Wahrheit ----------
-  $('demo').addEventListener('click', () => {
+  // Beispielhaus aus Code: Bild plus bekannte Eckpunkte (kein Foto, keine Rechte, funktioniert ohne Server).
+  function demoBild() {
     const W = 1200, H = 800, c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d');
     const sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, '#9ec5e8'); sky.addColorStop(1, '#dbe8f2');
@@ -402,13 +403,35 @@
     const fillPoly = (pts, col) => { g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.closePath(); g.fillStyle = col; g.fill(); };
     fillPoly(P([[0, 0], [10, 0], [10, 6], [0, 6]]), '#d8c3a5');
     const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
-    [[1, 1.2], [3.2, 1.2], [5.8, 1.2], [8, 1.2]].forEach(([x, y]) => fillPoly(P(rect(x, y, 1.2, 1.4)), '#3b5b78'));
-    fillPoly(P(rect(4.5, 4, 1, 2)), '#6b4a2f'); // Tür 1,0 x 2,0 m
+    const fenster = [[1, 1.2], [3.2, 1.2], [5.8, 1.2], [8, 1.2]].map(([x, y]) => P(rect(x, y, 1.2, 1.4)));
+    fenster.forEach((f) => fillPoly(f, '#3b5b78'));
+    const tuer = P(rect(4.5, 4, 1, 2)); fillPoly(tuer, '#6b4a2f'); // Tür 1,0 x 2,0 m
     window.__demo = { wallImg, wallM: [10, 6], windowsM2: 4 * 1.2 * 1.4, facadeM2: 60 };
-    loadImage(c.toDataURL('image/png'), 'demo-fassade.png');
+    return { url: c.toDataURL('image/png'), wallImg, fenster, tuer };
+  }
+
+  $('demo').addEventListener('click', () => {
+    const d = demoBild();
+    loadImage(d.url, 'demo-fassade.png');
     $('calW').value = 10; $('calH').value = 6;
     $('refFacade').value = 60; $('refWin').value = (4 * 1.2 * 1.4).toFixed(2);
   });
+
+  // Demo-Modus für den einfachen Ablauf: Beispielhaus mit fertigen Umrissen und exaktem Maßstab (Referenzrechteck = Wand 10 × 6 m)
+  function beispielhaus() {
+    const d = demoBild();
+    return new Promise((resolve) => {
+      loadImage(d.url, 'beispielhaus.png', () => {
+        setTool('facade');
+        S.shapes = [{ kind: 'facade', pts: d.wallImg.map((q) => [...q]) }, ...d.fenster.map((f) => ({ kind: 'window', pts: f })), { kind: 'door', pts: d.tuer }];
+        S.calib.type = 'rect'; S.calib.pts = d.wallImg.map((q) => [...q]); S.autoScale = null; S.det = null;
+        document.querySelector('input[name=ctype][value=rect]').checked = true; $('calW').value = 10; $('calH').value = 6;
+        S.auto = { shapes: [], mock: true, demo: true, model: null, dauer_s: 0, notes: 'Beispielhaus mit vorgegebenen Flächen' };
+        S.fehler = null; setHint('Beispielhaus: Flächen sind vorgegeben, keine KI-Erkennung.');
+        recompute(); draw(); resolve();
+      });
+    });
+  }
 
   // Leerer Zustand: große Schaltflächen lösen die Eingaben der Kopfzeile aus
   [['emptySnap', 'snap'], ['emptyPick', 'file'], ['emptyDemo', 'demo']].forEach(([a, b]) => { $(a).addEventListener('click', () => $(b).click()); });
@@ -421,10 +444,10 @@
   document.querySelector('[data-tool=calib]').addEventListener('click', () => { $('manual').open = true; });
   // Schnittstelle für den einfachen Ablauf (src/kunde.js)
   window.AufmassUI = {
-    erkennen: runDetect,
+    erkennen: runDetect, beispielhaus,
     status: () => {
       const fassade = S.shapes.some((s) => s.kind === 'facade'), r = updateResults();
-      return { hatBild: !!S.img, fehler: S.fehler || null, mock: !!(S.auto && S.auto.mock), fassade, massstabOk: !!S.calib.H,
+      return { hatBild: !!S.img, fehler: S.fehler || null, mock: !!(S.auto && S.auto.mock), demo: !!(S.auto && S.auto.demo), fassade, massstabOk: !!S.calib.H,
         wandNetto: r.ready && fassade ? r.aF - r.aW : null, art: S.autoScale || (S.calib.H ? S.calib.type : null), offeneErkennung: document.body.classList.contains('busy') };
     },
   };

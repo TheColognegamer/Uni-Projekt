@@ -52,7 +52,9 @@
       <div class="k-cta">
         <button id="kSnap" type="button" class="btn btn-primary btn-lg"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></svg>Foto aufnehmen</button>
         <button id="kPick" type="button" class="btn btn-lg">Foto wählen</button>
+        <button id="kBeispiel" type="button" class="btn btn-quiet btn-lg">Beispielhaus ansehen</button>
       </div>
+      <p id="kDemoHinweis" class="k-demo" hidden>Demo-Modus: Ohne KI-Schlüssel kann die App nur das Beispielhaus auswerten. Eigene Fotos brauchen einen Schlüssel.</p>
       <ul class="k-vorteile">
         <li><b>Automatisch vermessen</b><span>Wand, Fenster und Türen werden erkannt.</span></li>
         <li><b>Kosten und CO₂</b><span>Preis und Klimawirkung auf einen Blick.</span></li>
@@ -67,7 +69,7 @@
 
   <section class="k-step" data-step="fehler" hidden>
     <div class="k-mitte"><h2>Das hat leider nicht geklappt</h2><p id="kFehlerText"></p>
-      <div class="k-cta"><button id="kNochmal" type="button" class="btn btn-primary btn-lg">Anderes Foto</button><button id="kFehlerExperte" type="button" class="btn btn-quiet">Von Hand vermessen</button></div></div>
+      <div class="k-cta"><button id="kNochmal" type="button" class="btn btn-primary btn-lg">Anderes Foto</button><button id="kFehlerBeispiel" type="button" class="btn btn-lg">Beispielhaus ansehen</button><button id="kFehlerExperte" type="button" class="btn btn-quiet">Von Hand vermessen</button></div></div>
   </section>
 
   <section class="k-step" data-step="fragen" hidden>

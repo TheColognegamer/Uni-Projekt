@@ -224,3 +224,9 @@ Es müssen **nicht alle** Prompts erfasst werden – nur repräsentative und fü
 - **Fehler der KI bei der Arbeit (per Screenshot gefunden):** Der Demo-Hinweis erbte die große Schrift der Einleitung und wurde zur Riesenpille; Reihenfolge der Knöpfe im Demo-Modus angepasst.
 - **Prüfung:** `tests/kunde.mjs` jetzt mit drei Umgebungen (Attrappe, Server ohne Schlüssel, reiner Datei-Server ohne API): Demo-Ablauf bis zu den Karten, Beschriftung als Beispielrechnung, Fehlermeldung ohne Technikbegriffe, keine Konsolenfehler.
 - **Nicht geprüft:** echte Geräte; ob das Beispielhaus für Kunden als Demo überzeugt.
+
+
+## P-17: Fensterbreite als Maßstab
+**Prompt (Nutzer):** Foto eines Kölner Hauses mit dem Hinweis „Fenster 1./2.OG sind 190cm breit“.
+**Umsetzung:** Neue Maßstab-Option „Fensterbreite“ (Expertenansicht) und optionales Feld „Breite eines Fensters“ im Kundenablauf. Die größte Gruppe ähnlich breiter erkannter Fenster wird gegen die angegebene Breite skaliert (Genauigkeit ca. ±8 %, Priorität: Wandbreite vor Fensterbreite vor KI-Schätzung).
+**Grenze:** Bei schräger Aufnahme ändert sich der Maßstab entlang der Fassade; eine einzelne Fensterbreite gilt dann nur lokal. Perspektivkorrektur ist ein nächster Schritt.

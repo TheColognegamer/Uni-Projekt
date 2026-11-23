@@ -95,7 +95,7 @@
     const badge = $('scaleBadge'); let bd = null;
     if (ready) {
       const m = S.autoScale;
-      bd = m === 'est' ? ['warn', 'KI-Schätzung · ca. ±10–15 %'] : m === 'door' ? ['warn', 'Türhöhe angenommen · ca. ±10–13 %']
+      bd = m === 'est' ? ['warn', 'KI-Schätzung · ca. ±10–15 %'] : m === 'window' ? ['ok', 'Fensterbreite gemessen · ca. ±8 %'] : m === 'door' ? ['warn', 'Türhöhe angenommen · ca. ±10–13 %']
         : m === 'width' ? ['ok', 'Breite gemessen · ca. ±4–5 %'] : S.calib.type === 'rect' ? ['ok', 'Referenzrechteck · Perspektive korrigiert']
         : ['warn', 'Referenzstrecke · nur bei frontalem Foto'];
     }
@@ -305,6 +305,12 @@
   function renderRefs(est) {
     $('refs').innerHTML = est ? est.all.map((r) => `<li>${est.used.includes(r) ? '✓' : '·'} ${r.label}: ${fmt(r.typ)} m (${fmt(r.min)}–${fmt(r.max)}), ${r.conf}${est.used.includes(r) ? '' : ' – nicht verwendet'}</li>`).join('') : '';
   }
+  // Größte Gruppe ähnlich breiter Fenster (Breitenverhältnis höchstens ratio): normale Fenster, ohne Treppenhaus- und Dachfenster
+  function groesstesCluster(liste, ratio) {
+    const s = [...liste].sort((a, b) => a.w - b.w); let best = [];
+    for (let i = 0; i < s.length; i++) { let j = i; while (j + 1 < s.length && s[j + 1].w <= s[i].w * ratio) j++; if (j - i + 1 > best.length) best = s.slice(i, j + 1); }
+    return best;
+  }
   function applyAutoScale(facade, door, refs) {
     S.scaleRange = null; renderRefs(null);
     const mode = document.querySelector('input[name=amode]:checked').value;
@@ -320,6 +326,14 @@
       }
       if (door) { p = verticalMid(door.pts); len = +$('autoD').value; note = 'KI fand keine verlässliche Referenz, angenommene Türhöhe verwendet.'; S.autoScale = 'door'; }
       else return 'KI fand keine verlässliche Referenz. Wähle „Fassadenbreite“ und trage die Breite ein oder setze den Maßstab selbst.';
+    } else if (mode === 'window') {
+      const ws = S.shapes.filter((s) => s.kind === 'window').map((s) => { const xs = s.pts.map((q) => q[0]), ys = s.pts.map((q) => q[1]); return { w: Math.max(...xs) - Math.min(...xs), x0: Math.min(...xs), x1: Math.max(...xs), y: (Math.min(...ys) + Math.max(...ys)) / 2 }; }).filter((x) => x.w > 8);
+      const g = groesstesCluster(ws, 1.2);
+      if (!g.length) return 'Keine Fenster erkannt. Bitte „Fassadenbreite“ wählen oder den Maßstab selbst setzen.';
+      const mw = g.reduce((a, x) => a + x.w, 0) / g.length, rep = g.reduce((a, x) => (Math.abs(x.w - mw) < Math.abs(a.w - mw) ? x : a));
+      len = +$('autoF').value; if (!(len > 0)) return 'Auto-Maßstab: ungültige Länge.';
+      S.calib.type = 'line'; S.calib.pts = [[rep.x0, rep.y], [rep.x1, rep.y]]; $('calL').value = (len * rep.w / mw).toFixed(3);   // Maßstab = angegebene Breite / mittlere Fensterbreite
+      document.querySelector('input[name=ctype][value=line]').checked = true; S.autoScale = 'window'; return null;
     } else if (mode === 'width' && facade) { p = widthLine(facade.pts); len = +$('autoW').value; S.autoScale = 'width'; }
     else if (mode === 'door' && door) { p = verticalMid(door.pts); len = +$('autoD').value; S.autoScale = 'door'; }
     else return mode === 'door' ? 'Keine Tür erkannt. Wähle „KI schätzt“ oder „Fassadenbreite“.' : 'Keine Fassade erkannt – bitte Maßstab manuell setzen.';
@@ -363,7 +377,7 @@
     setHint(msg || 'Maßstab neu gesetzt.'); recompute(); draw();
   }
   document.querySelectorAll('input[name=amode]').forEach((r) => r.addEventListener('change', reapplyScale));
-  ['autoW', 'autoD'].forEach((id) => $(id).addEventListener('input', reapplyScale));
+  ['autoW', 'autoF', 'autoD'].forEach((id) => $(id).addEventListener('input', reapplyScale));
   $('auto').addEventListener('click', runDetect);
   $('snap').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
@@ -436,7 +450,7 @@
   // Leerer Zustand: große Schaltflächen lösen die Eingaben der Kopfzeile aus
   [['emptySnap', 'snap'], ['emptyPick', 'file'], ['emptyDemo', 'demo']].forEach(([a, b]) => { $(a).addEventListener('click', () => $(b).click()); });
   // Eingabe in einem Maßstabsfeld wählt die passende Option aus
-  [['autoW', 'width'], ['autoD', 'door']].forEach(([id, v]) => $(id).addEventListener('focus', () => {
+  [['autoW', 'width'], ['autoF', 'window'], ['autoD', 'door']].forEach(([id, v]) => $(id).addEventListener('focus', () => {
     const r = document.querySelector(`input[name=amode][value=${v}]`);
     if (!r.checked) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
   }));

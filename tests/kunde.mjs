@@ -38,6 +38,9 @@ async function lauf(name, viewport, mobil) {
   const preis2 = await pg.$eval('.k-card .k-preis', (e) => e.textContent);
   ok(preis2 !== preis1, `${name}: Breite hat keinen Einfluss (${preis1} / ${preis2})`);
   ok(/±5 %/.test(await pg.$eval('.k-fuss', (e) => e.textContent)), `${name}: Genauigkeitsangabe für gemessene Breite fehlt`);
+  // Fensterbreite statt Wandbreite
+  await pg.click('#kAendern'); await pg.fill('#kBreite', ''); await pg.fill('#kFenster', '1,2'); await pg.click('#kWeiter'); await pg.waitForSelector('.k-step[data-step=ergebnis]:not([hidden])');
+  ok(/±8 %/.test(await pg.$eval('.k-fuss', (e) => e.textContent)), `${name}: Genauigkeitsangabe für Fensterbreite fehlt`);
   // Umschalter Expertenansicht
   await pg.click('#modeBtn'); await pg.waitForTimeout(200);
   ok((await sichtbar(pg, '.topbar .tabs')) && (await sichtbar(pg, '#tabAufmass')) && !(await sichtbar(pg, '#kunde')), `${name}: Expertenansicht nicht sichtbar`);

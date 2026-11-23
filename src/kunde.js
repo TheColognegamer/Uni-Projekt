@@ -20,7 +20,7 @@
   $('modeBtn').addEventListener('click', () => modus(!document.body.classList.contains('experte')));
 
   // ---------- Zustand ----------
-  const Q = { baujahr: 1960, geschosse: 3, wand: 'mauerwerk', breite: null };
+  const Q = { baujahr: 1960, geschosse: 3, wand: 'mauerwerk', breite: null, fenster: null };
   let schritt = 'start', gesehenBusy = false, breitePflicht = false, ki = true;
 
   // Ohne KI-Schlüssel (oder ohne Server) läuft die App im Demo-Modus: nur das Beispielhaus lässt sich auswerten.
@@ -94,11 +94,12 @@
   window.KundeUI = { vorschau };
 
   function pruefeFormular() {
-    const ok = Q.baujahr >= 1800 && Q.baujahr <= 2030 && Q.geschosse >= 1 && (!breitePflicht || Q.breite > 0);
+    const ok = Q.baujahr >= 1800 && Q.baujahr <= 2030 && Q.geschosse >= 1 && (!breitePflicht || Q.breite > 0 || Q.fenster > 0);
     $('kWeiter').disabled = !ok;
   }
   $('kBaujahr').addEventListener('input', () => { Q.baujahr = parseInt($('kBaujahr').value, 10) || 0; pruefeFormular(); });
   $('kBreite').addEventListener('input', () => { const v = parseFloat($('kBreite').value.replace(',', '.')); Q.breite = v > 0 ? v : null; pruefeFormular(); });
+  $('kFenster').addEventListener('input', () => { const v = parseFloat($('kFenster').value.replace(',', '.')); Q.fenster = v > 0 ? v : null; pruefeFormular(); });
   root.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => {
     Q.geschosse = Math.max(1, Math.min(12, Q.geschosse + (+b.dataset.g))); $('kGeschosse').textContent = Q.geschosse; pruefeFormular();
   }));
@@ -117,8 +118,8 @@
 
   function berechnen() {
     // Maßstab: gemessene Breite, sonst KI-Schätzung
-    const modus2 = Q.breite ? 'width' : 'est';
-    if (Q.breite) feld('autoW', Q.breite);
+    const modus2 = Q.breite ? 'width' : Q.fenster ? 'window' : 'est';
+    if (Q.breite) feld('autoW', Q.breite); else if (Q.fenster) feld('autoF', Q.fenster);
     const r = document.querySelector(`input[name=amode][value=${modus2}]`);
     r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true }));
     // Gebäude
@@ -182,7 +183,7 @@
 
   function ergebnis(erg) {
     const e = erg.empfehlung, st = window.AufmassUI.status(), san = window.SanierungUI.ergebnis();
-    const genau = st.art === 'width' ? 'ca. ±5 %' : 'ca. ±15 %';
+    const genau = st.art === 'width' ? 'ca. ±5 %' : st.art === 'window' ? 'ca. ±8 %' : 'ca. ±15 %';
     const fuss = st.demo ? 'Beispielrechnung für ein Musterhaus mit vorgegebenen Flächen, kein echtes Foto. Für Ihr Haus brauchen Sie ein eigenes Foto.' : `Richtwerte, netto, Preisstand 2026 für Köln. Die Genauigkeit der Flächen liegt bei ${genau}. Für einen verbindlichen Preis brauchen Sie ein Angebot.`;
     const wand = { mauerwerk: 'Mauerwerk', zweischalig: 'zweischaliges Mauerwerk', holz: 'Holz oder Fachwerk' }[Q.wand] || 'Mauerwerk';
     $('kErgebnis').innerHTML = `

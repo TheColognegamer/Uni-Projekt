@@ -103,7 +103,12 @@
           <label for="kBreite">Breite der Hauswand <span class="k-opt">optional</span></label>
           <span class="field"><input id="kBreite" type="text" inputmode="decimal" placeholder="z. B. 10,5"><span class="unit">m</span></span>
           <p class="k-klein">Mit gemessener Breite wird die Berechnung genauer.</p>
-          <p class="k-pflicht" id="kBreitePflicht" hidden>Bitte angeben: Die Größe ließ sich aus dem Foto nicht ableiten.</p>
+          <p class="k-pflicht" id="kBreitePflicht" hidden>Bitte die Breite der Wand oder eines Fensters angeben: Die Größe ließ sich aus dem Foto nicht ableiten.</p>
+        </div>
+        <div class="k-feld">
+          <label for="kFenster">Breite eines Fensters <span class="k-opt">optional</span></label>
+          <span class="field"><input id="kFenster" type="text" inputmode="decimal" placeholder="z. B. 1,90"><span class="unit">m</span></span>
+          <p class="k-klein">Einfacher zu messen als die ganze Wand. Ein normales Fenster nehmen, am besten das Rahmenaußenmaß.</p>
         </div>
         <button id="kWeiter" type="button" class="btn btn-primary btn-lg">Empfehlung anzeigen</button>
       </div>
@@ -196,6 +201,9 @@
         <label class="item"><input type="radio" name="amode" value="width">
           <span class="grow"><span class="t">Fassadenbreite</span><span class="d">Gemessen, am genauesten</span></span>
           <span class="field"><input id="autoW" type="number" step="0.01" min="1" value="10" aria-label="Fassadenbreite in Metern"><span class="unit">m</span></span></label>
+        <label class="item"><input type="radio" name="amode" value="window">
+          <span class="grow"><span class="t">Fensterbreite</span><span class="d">Breite eines normalen Fensters, gemessen</span></span>
+          <span class="field"><input id="autoF" type="number" step="0.01" min="0.3" value="1.20" aria-label="Fensterbreite in Metern"><span class="unit">m</span></span></label>
         <label class="item"><input type="radio" name="amode" value="door">
           <span class="grow"><span class="t">Türhöhe</span><span class="d">Gemessen oder angenommen (2,01 m)</span></span>
           <span class="field"><input id="autoD" type="number" step="0.01" min="0.5" value="2.01" aria-label="Türhöhe in Metern"><span class="unit">m</span></span></label>

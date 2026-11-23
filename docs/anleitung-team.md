@@ -20,7 +20,7 @@ Alle Bausteine sind jetzt **in einem Branch** zusammengeführt: `claude/relaxed-
 - Die Daten laufen so: Aufmaß → Sanierung → LCA und Kosten/Empfehlung. Details: `docs/schnittstelle-*.md`.
 
 ## Zwei Ansichten
-- **Einfache Ansicht (Standard):** 1. Foto, 2. Angaben (Baujahr, Stockwerke, Wandart, optional Breite der Wand oder eines Fensters), 3. Empfehlung. Wenig Text, für Kunden gedacht.
+- **Einfache Ansicht (Standard):** 1. Foto, 2. Angaben (Baujahr, Stockwerke, Wandart, optional Hauswandbreite), 3. Empfehlung. Wenig Text, für Kunden gedacht.
 - **Expertenansicht:** oben rechts auf „Expertenansicht“ klicken (oder `?experte=1` an die Adresse hängen). Dann gibt es vier Reiter: Aufmaß, Sanierung, LCA, Empfehlung mit allen Zahlen, Annahmen und änderbaren Gewichten. Hier kann man alles nachprüfen.
 
 ## So starten (Mac, Windows, Linux)
